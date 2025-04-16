@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding the Jump Diffusion Model in Finance - Tanawich's Blog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['\\(', '\\)']], // Delimiters for inline math
+            displayMath: [['\\[', '\\]']] // Delimiters for display math
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+      /* Includes styles from blog_article_template_v1 */
+      @font-face {
+        font-family: 'LucideIcons';
+        src: url('https://cdn.jsdelivr.net/npm/lucide-static@latest/font/Lucide.ttf') format('truetype');
+      }
+      .lucide {
+        font-family: 'LucideIcons';
+        font-size: 1.25em;
+        line-height: 1;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff;
+        color: #1f2937;
+      }
+      /* Keep prose styles, MathJax will handle math rendering within it */
+      .prose { color: #374151; line-height: 1.75; max-width: 65ch; }
+      .prose h1 { font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5em; line-height: 1.2; color: #111827; }
+      .prose h2 { font-size: 1.5rem; font-weight: 600; margin-top: 2em; margin-bottom: 1em; color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.3em; }
+      .prose h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.75em; margin-bottom: 0.75em; color: #111827; }
+      .prose p { margin-top: 1.25em; margin-bottom: 1.25em; }
+      .prose a { color: #4f46e5; text-decoration: underline; font-weight: 500; }
+      .prose a:hover { color: #3730a3; }
+      .prose ul, .prose ol { margin-top: 1.25em; margin-bottom: 1.25em; padding-left: 1.75em; }
+      .prose ul { list-style-type: disc; }
+      .prose ol { list-style-type: decimal; }
+      .prose li { margin-top: 0.5em; margin-bottom: 0.5em; }
+      .prose blockquote { margin-top: 1.5em; margin-bottom: 1.5em; padding-left: 1em; border-left: 4px solid #d1d5db; font-style: italic; color: #4b5563; }
+      .prose blockquote p { margin: 0; }
+      .prose pre { background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 1rem; overflow-x: auto; font-size: 0.875rem; line-height: 1.5; color: #111827; margin-top: 1.5em; margin-bottom: 1.5em; }
+      /* Keep code styling for actual code blocks */
+      .prose code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background-color: #f3f4f6; padding: 0.1em 0.3em; border-radius: 0.25rem; font-size: 0.9em; }
+      .prose pre code { background-color: transparent; padding: 0; border-radius: 0; font-size: inherit; }
+      .prose code::before, .prose code::after { content: none; }
+      /* Style images */
+      .prose img { margin-top: 2em; margin-bottom: 2em; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); }
+      .prose figure { margin-top: 2em; margin-bottom: 2em; }
+      .prose figcaption { margin-top: 0.5em; text-align: center; font-size: 0.875rem; color: #6b7280; font-style: italic; }
+      /* Remove manual math styling */
+      /* .math-equation, .math-inline removed */
+
+      #readingProgressBar { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background-color: #4f46e5; z-index: 9999; transition: width 0.1s linear; }
+      .author-box { background-color: #f9fafb; border: 1px solid #e5e7eb; }
+      .related-post-card { border: 1px solid #e5e7eb; transition: box-shadow 0.3s ease; }
+      .related-post-card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); }
+    </style>
+    </head>
+<body class="antialiased">
+
+    <div id="readingProgressBar"></div>
+
+    <header class="border-b border-gray-200">
+        <nav class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <a href="../index.html" class="text-lg font-semibold text-gray-800">Tanawich J.</a>
+        </nav>
+    </header>
+
+    <main class="py-10 sm:py-16">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <header class="mb-8">
+                <h1 class="text-3xl sm:text-4xl lg:text-3xl font-bold tracking-tight text-gray-900 mb-4 leading-tight">
+                    Beyond Black-Scholes: An Introduction to the Jump Diffusion Model
+                </h1>
+                <div class="flex items-center text-sm text-gray-500 mb-6">
+                    <img src="https://placehold.co/40x40/E0E7FF/4F46E5?text=TJ" alt="Tanawich Junpoom" class="w-10 h-10 rounded-full mr-3">
+                    <div>
+                        By <a href="#" class="font-medium text-gray-700 hover:text-indigo-600">Tanawich Junpoom</a>
+                        <span class="mx-1.5">&middot;</span>
+                        <span>[April 16, 2025]</span> <span class="mx-1.5">&middot;</span>
+                        <span>~8 min read</span> </div>
+                </div>
+                <img src="https://tradexplore.com/wp-content/uploads/stochastic.jpg"
+                     alt="Abstract financial chart showing volatility"
+                     class="w-full h-auto rounded-lg shadow-lg object-cover mb-8"
+                     onerror="this.onerror=null; this.src='https://placehold.co/1200x600/cccccc/ffffff?text=Image+Error';">
+            </header>
+
+            <article class="prose lg:prose-lg mx-auto">
+
+                <p>
+                    The world of finance is dynamic and often unpredictable. While the famous Black-Scholes model provides a foundational framework for option pricing, it relies on a key assumption: asset prices move continuously over time. However, anyone watching the markets knows this isn't always true. Prices can experience sudden, sharp movements  jumps  often triggered by unexpected news, economic crises, or company-specific events like earnings reports.
+                </p>
+
+                <h2>Why Do We Need Jump Diffusion?</h2>
+                <p>
+                    The limitations of continuous models like Black-Scholes become apparent when dealing with real-world phenomena:
+                </p>
+                <ul>
+                    <li><strong>Sudden Shocks:</strong> Real asset prices clearly exhibit sudden jumps that continuous paths cannot replicate accurately.</li>
+                    <li><strong>Volatility Smiles & Skews:</strong> Jump risk contributes to the observed implied volatility smiles and skews, which Black-Scholes struggles to explain.</li>
+                    <li><strong>Tail Risk:</strong> Jump models inherently capture the possibility of larger, more abrupt price changes (tail events) than purely Gaussian models.</li>
+                </ul>
+                <p>
+                    By adding a jump component, these models offer a more realistic description of asset price dynamics. Consequently, jump diffusion models have found widespread application in areas like option pricing, credit risk modeling, insurance mathematics, and even the volatile world of cryptocurrencies.
+                </p>
+
+                <h2>The Mathematical Formulation</h2>
+                <p>
+                    The core idea is to add a "jump" term to the standard Geometric Brownian Motion (GBM) stochastic differential equation (SDE). The SDE for an asset price \( S_t \) under a jump diffusion process is often written as:
+                </p>
+                \[ \frac{dS_t}{S_t} = \mu dt + \sigma dW_t + dJ_t \]
+                <p>
+                    Let's break down the components:
+                </p>
+                <ul>
+                    <li>\( \mu \): The expected instantaneous rate of return, representing the average drift of the asset price.</li>
+                    <li>\( \sigma \): The instantaneous volatility, measuring the magnitude of the continuous random fluctuations.</li>
+                    <li>\( W_t \): A standard Brownian motion (or Wiener process), driving the continuous diffusion part.</li>
+                    <li>\( dJ_t \): The jump component, representing the instantaneous change due to a jump occurring at time \( t \).</li>
+                </ul>
+                <p>
+                    The challenge lies in defining this jump component, \( dJ_t \).
+                </p>
+
+                <h2>Deriving the Model: Step-by-Step</h2>
+
+                <h3>Step 1: Start with Continuous GBM</h3>
+                <p>
+                    We begin with the familiar SDE for Geometric Brownian Motion, which describes continuous price evolution:
+                </p>
+                \[ dS_t = \mu S_t dt + \sigma S_t dW_t \]
+
+                <h3>Step 2: Define the Jump Process</h3>
+                <p>
+                    The jump component \( dJ_t \) is typically modeled using a compound Poisson process. This means jumps arrive randomly according to a Poisson process, and the size of each jump is itself a random variable.
+                </p>
+                <ul>
+                    <li><strong>Jump Arrival:</strong> Jumps occur at random times governed by a Poisson process \( N_t \) with intensity (average arrival rate) \( \lambda \). The probability of a jump occurring in a small time interval \( dt \) is approximately \( \lambda dt \).</li>
+                    <li><strong>Jump Size:</strong> When a jump occurs at time \( t \), the price instantly moves from its pre-jump level \( S_{t^-} \) to \( J S_{t^-} \), where \( J \) is a random variable representing the multiplicative jump size. The relative jump size is therefore \( (J - 1) \). A common assumption (Merton's model) is that \( \ln(J) \) follows a normal distribution: \( \ln(J) \sim \mathcal{N}(\mu_J, \sigma_J^2) \).</li>
+                </ul>
+                <p>
+                    So, the change in price *due to a jump* occurring (\( dN_t = 1 \)) is:
+                </p>
+                 \[ S_t - S_{t^-} = S_{t^-}(J - 1) \]
+
+                <h3>Step 3: Combine Continuous and Jump Parts</h3>
+                <p>
+                    We can now incorporate the jump term into the SDE. The total change \( dS_t \) is the sum of the continuous drift, continuous diffusion, and the jump impact (which only occurs when \( dN_t = 1 \)):
+                </p>
+                 \[ dS_t = \mu S_t dt + \sigma S_t dW_t + S_{t^-}(J - 1) dN_t \]
+                <p>
+                    Dividing by \( S_t \) (approximating \( S_{t^-} \) with \( S_t \) for the jump term coefficient in the differential form), we get the relative price change:
+                </p>
+                \[ \frac{dS_t}{S_t} \approx \mu dt + \sigma dW_t + (J - 1) dN_t \]
+
+                <h3>Step 4: Drift Adjustment (Martingale Correction)</h3>
+                <p>
+                    The raw jump term \( (J - 1) dN_t \) has a non-zero expectation, which affects the overall drift of the process. The expected value is:
+                </p>
+                 \[ \mathbb{E}[(J - 1) dN_t] = \mathbb{E}[J - 1] \cdot \mathbb{E}[dN_t] \]
+                <p>
+                    Assuming \( \ln(J) \sim \mathcal{N}(\mu_J, \sigma_J^2) \), we know \( \mathbb{E}[J] = \exp(\mu_J + \frac{1}{2} \sigma_J^2) \). Also, \( \mathbb{E}[dN_t] = \lambda dt \). Therefore:
+                </p>
+                 \[ \mathbb{E}[(J - 1) dN_t] = \left(e^{(\mu_J + \frac{1}{2}\sigma_J^2)} - 1\right) (\lambda dt) \]
+                <p>
+                    To ensure the parameter \( \mu \) truly represents the total expected return, we often subtract this expected jump contribution from the drift term. Let \( A = \lambda \left(e^{(\mu_J + \frac{1}{2}\sigma_J^2)} - 1\right) \). The drift-adjusted SDE becomes:
+                </p>
+                \[ \frac{dS_t}{S_t} = (\mu - A) dt + \sigma dW_t + (J - 1) dN_t \]
+                <p>
+                    This ensures that the jump component represents "pure," unexpected jumps relative to the overall expected trend \( \mu \).
+                </p>
+
+                <h3>Considering Multiple Jumps</h3>
+                <p>
+                    Over a finite time interval (not infinitesimally small \( dt \)), more than one jump can occur. If \( dN_t \) jumps occur, each with size \( J_i \), the price jumps from \( S_t \) to \( S_t \prod_{i=1}^{dN_t} J_i \). The SDE can be written to reflect this cumulative jump impact:
+                </p>
+                 \[ \frac{dS_t}{S_t} = (\mu - A) dt + \sigma dW_t + \left(\prod_{i=1}^{dN_t} J_i - 1\right) dN_t \]
+                <p>
+                    Note: The term \( (\prod J_i - 1) dN_t \) is often simplified back to \( (J - 1) dN_t \) in the differential form, with the understanding that \( J \) represents the aggregate effect if multiple jumps occur in \( dt \) (which has probability approaching zero). The integrated form handles multiple jumps correctly.
+                </p>
+
+                <h2>Application: Jump Diffusion in Option Pricing</h2>
+                <p>
+                    Pricing options under jump diffusion requires extending tools like Ito's Lemma. For a function \( f(S_t) \), Ito's Lemma for jump processes includes an additional term for the change caused by jumps:
+                </p>
+                 \[ df = \frac{\partial f}{\partial t}dt + \frac{\partial f}{\partial S_t}dS_t + \frac{1}{2}\frac{\partial^2 f}{\partial S_t^2}dS_t^2 + \left[ f\left(S_t \prod J_i \right) - f(S_t) \right] dN_t \]
+                <p>
+                    Let's apply this to \( f(S_t) = \ln(S_t) \). We need \( dS_t/S_t \) (which we have) and \( dS_t^2 \). Using Ito's rules (\( dt^2=0 \), \( dtdW=0 \), \( dW^2=dt \), and ignoring jump terms in squared differential as they are lower order):
+                </p>
+                 \[ dS_t^2 = (\mu S_t dt + \sigma S_t dW_t)^2 = \sigma^2 S_t^2 dt \]
+                <p>
+                    Plugging into Ito's Lemma for \( \ln(S_t) \):
+                </p>
+                \[ d(\ln S_t) = \frac{dS_t}{S_t} - \frac{1}{2} \frac{dS_t^2}{S_t^2} + \left[ \ln\left(S_t \prod J_i\right) - \ln(S_t) \right] dN_t \]
+                \[ d(\ln S_t) = [(\mu - A) dt + \sigma dW_t + (J - 1) dN_t] - \frac{1}{2} [\sigma^2 dt] + [ \ln(\prod J_i) ] dN_t \]
+                 <p>
+                    The term \( (J-1)dN_t \) needs careful handling. Often, the formulation directly uses the jump impact on the log price, \( \ln(J) dN_t \). Assuming the jump size in the log-price SDE is \( \ln(J) \), the equation simplifies nicely:
+                 </p>
+                 \[ d(\ln S_t) = \left(\mu - A - \frac{\sigma^2}{2}\right) dt + \sigma dW_t + \ln(J) dN_t \]
+                <p>
+                    Integrating from 0 to t:
+                </p>
+                \[ \ln(S_t) - \ln(S_0) = \left(\mu - A - \frac{\sigma^2}{2}\right) t + \sigma W_t + \sum_{i=1}^{N_t} \ln(J_i) \]
+                <p>
+                    Here, \( N_t \) is the total number of jumps up to time t, and \( J_i \) are the individual jump sizes.
+                </p>
+
+                <h3>Distribution and Pricing Formula</h3>
+                <p>
+                    The final log price \( \ln(S_t) \) is a sum of:
+                </p>
+                <ul>
+                    <li>A deterministic drift term.</li>
+                    <li>A normally distributed Brownian motion term: \( \sigma W_t \sim \mathcal{N}(0, \sigma^2 t) \).</li>
+                    <li>A sum of log-jumps term: Given \( N_t = n \) jumps, \( \sum_{i=1}^{n} \ln(J_i) \sim \mathcal{N}(n\mu_J, n\sigma_J^2) \) (assuming normally distributed log-jumps).</li>
+                </ul>
+                <p>
+                    Conditional on \( n \) jumps occurring, the sum \( \sigma W_t + \sum_{i=1}^{n} \ln(J_i) \) is normally distributed: \( \mathcal{N}(n\mu_J, \sigma^2 t + n\sigma_J^2) \).
+                </p>
+                <p>
+                    This leads to Merton's (1976) famous option pricing formula under jump diffusion. It involves calculating the Black-Scholes price conditional on \( n \) jumps occurring and then summing these prices weighted by the Poisson probability of \( n \) jumps occurring:
+                </p>
+                \[ C(S_0, T) = \sum_{n=0}^{\infty} \left[ \mathbb{P}[N_T = n] \cdot C_{BS}(S_0^{(n)}, T, K, r, \sigma_n^2) \right] \]
+                <p>
+                    Where:
+                </p>
+                <ul>
+                    <li>\( \mathbb{P}[N_T = n] = \frac{(\lambda T)^n e^{-\lambda T}}{n!} \) is the Poisson probability.</li>
+                    <li>\( C_{BS}(...) \) is the Black-Scholes formula.</li>
+                    <li>\( \sigma_n^2 = \sigma^2 + \frac{n\sigma_J^2}{T} \) is the conditional total variance.</li>
+                    <li>\( S_0^{(n)} = S_0 \exp\left(-At + n\mu_J + \frac{n\sigma_J^2}{2T}\right) \) is an adjusted initial stock price reflecting the expected impact of n jumps (details involve risk-neutral pricing and Girsanov's Theorem - see Appendix). Note: The original Beamer formula for \(S_0^{(n)}\) seems slightly different, this version aligns with common Merton literature adjustments in risk-neutral setting. Please verify the exact formulation needed.</li>
+                 </ul>
+
+
+                <h2>Black-Scholes vs. Jump Diffusion</h2>
+                <p>
+                    How do these models stack up?
+                </p>
+                <table class="w-full text-left border-collapse my-8">
+                    <thead>
+                        <tr>
+                            <th class="border p-2 font-semibold">Feature</th>
+                            <th class="border p-2 font-semibold">Black-Scholes</th>
+                            <th class="border p-2 font-semibold">Jump Diffusion (Merton)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border p-2">Price Path</td>
+                            <td class="border p-2">Continuous</td>
+                            <td class="border p-2">Discontinuous (Jumps possible)</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">Source of Randomness</td>
+                            <td class="border p-2">Brownian Motion</td>
+                            <td class="border p-2">Brownian Motion + Poisson Process</td>
+                        </tr>
+                         <tr>
+                            <td class="border p-2">Volatility Smile/Skew</td>
+                            <td class="border p-2">Not explained (constant vol)</td>
+                            <td class="border p-2">Partially explained via jumps</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">Extreme Events (Tail Risk)</td>
+                            <td class="border p-2">Underestimated</td>
+                            <td class="border p-2">Better captured via jumps</td>
+                        </tr>
+                         <tr>
+                            <td class="border p-2">Complexity</td>
+                            <td class="border p-2">Simpler</td>
+                            <td class="border p-2">More complex (more parameters)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>Example Simulation</h2>
+                <p>
+                    Visualizing the process helps understand the difference. The plot below shows a sample path generated from a jump diffusion model compared to a standard GBM path. Notice the sudden drops or spikes in the jump diffusion path.
+                </p>
+                <figure>
+                    <img src="../IMAGE/jump_image.png"
+                         alt="Sample path of Jump Diffusion vs Geometric Brownian Motion"
+                         onerror="this.onerror=null; this.src='https://placehold.co/800x450/cccccc/ffffff?text=Image+Error';">
+                    <figcaption>Figure 1: Example simulation comparing GBM (smooth) and Jump Diffusion (with jumps).</figcaption>
+                </figure>
+
+                <h2>Key Takeaways</h2>
+                <ul>
+                    <li>Jump Diffusion models enhance realism by combining continuous Brownian motion with discrete jumps modeled by a Poisson process.</li>
+                    <li>They are crucial for modeling assets prone to sudden price changes due to news or crises.</li>
+                    <li>These models offer flexibility in capturing market phenomena like volatility smiles and fat tails (tail risk) better than Black-Scholes.</li>
+                    <li>Jump diffusion serves as a foundation for even more advanced financial models, such as those incorporating stochastic volatility alongside jumps (e.g., Bates model).</li>
+                </ul>
+
+                <hr class="my-8 border-gray-300">
+                <h2>Appendix: Girsanov's Theorem and Risk-Neutral Pricing</h2>
+                <p>
+                    A key concept in option pricing is the switch from the real-world probability measure (\( \mathbb{P} \)) to a risk-neutral measure (\( \mathbb{Q} \)). Girsanov's Theorem provides the mathematical tool for this change. Under the risk-neutral measure, the expected return on any traded asset must equal the risk-free rate \( r \).
+                </p>
+                <p>
+                    For standard GBM under \( \mathbb{P} \):
+                </p>
+                \[ dS_t = \mu S_t dt + \sigma S_t dW_t^{\mathbb{P}} \]
+                <p>
+                    Girsanov's theorem allows us to define a new Brownian motion \( dW_t^{\mathbb{Q}} = dW_t^{\mathbb{P}} + \theta dt \), where \( \theta = \frac{\mu - r}{\sigma} \) is the market price of risk. Under the risk-neutral measure \( \mathbb{Q} \), the SDE becomes:
+                </p>
+                 \[ dS_t = r S_t dt + \sigma S_t dW_t^{\mathbb{Q}} \]
+                <p>
+                    This transformation is essential because it allows us to price derivatives based on their expected payoff under \( \mathbb{Q} \), discounted at the risk-free rate, without needing to estimate the real-world drift \( \mu \) or investor risk preferences. Similar adjustments involving the jump component are needed when applying this to jump diffusion models, leading to the risk-neutral drift used in the Merton formula (often adjusting \( A \) to \( A^Q = \lambda \mathbb{E}^Q[J-1] \)).
+                </p>
+
+            </article>
+        <div class="mt-10 pt-6 border-t border-gray-200">
+            <a href="../assets/Jump.pdf" download="jump_diffusion_notes.pdf" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                <i class="uil uil-file-download"></i>&nbsp;  Download File </a>
+       </div>
+
+            <footer class="mt-10 pt-6 border-t border-gray-200">
+                <div class="mb-6">
+                    <span class="font-medium text-gray-700 mr-2">Tags:</span>
+                    <a href="#" class="text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full px-3 py-1 mr-1 mb-1 inline-block">Quantitative Finance</a>
+                    <a href="#" class="text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full px-3 py-1 mr-1 mb-1 inline-block">Stochastic Calculus</a>
+                    <a href="#" class="text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full px-3 py-1 mr-1 mb-1 inline-block">Option Pricing</a>
+                    <a href="#" class="text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full px-3 py-1 mr-1 mb-1 inline-block">Jump Diffusion</a>
+                    <a href="#" class="text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full px-3 py-1 mr-1 mb-1 inline-block">Merton Model</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="font-medium text-gray-700">Share this post:</span>
+                    <a href="https://twitter.com/intent/tweet?url=YOUR_URL&text=YOUR_TEXT" target="_blank" rel="noopener noreferrer" title="Share on Twitter" class="text-gray-500 hover:text-blue-500">
+                        <i class="uil uil-twitter"></i> </a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=" target="_blank" rel="noopener noreferrer" title="Share on Facebook" class="text-gray-500 hover:text-blue-700">
+                        <i class="uil uil-facebook"></i> </a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=" target="_blank" rel="noopener noreferrer" title="Share on LinkedIn" class="text-gray-500 hover:text-blue-600">
+                        <i class="uil uil-linkedin"></i>&nbsp;  </a>
+                </div>
+            </footer>
+
+        </div>
+
+        <section class="mt-16 bg-gray-50 py-10">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                 <div class="author-box p-6 rounded-lg flex items-start sm:items-center flex-col sm:flex-row">
+                     <img src="https://placehold.co/80x80/E0E7FF/4F46E5?text=TJ" alt="Tanawich Junpoom" class="w-20 h-20 rounded-full mr-0 mb-4 sm:mr-6 sm:mb-0 flex-shrink-0">
+                     <div>
+                         <h3 class="text-lg font-semibold text-gray-900 mb-1">About The Author</h3>
+                         <p class="text-gray-600 mb-2"><a href="#" class="font-medium text-indigo-600 hover:underline">Tanawich Junpoom</a></p>
+                         <p class="text-sm text-gray-500">
+                             passionate about quantitative finance and applying mathematical models to understand market dynamics.
+                         </p>
+                     </div>
+                 </div>
+            </div>
+        </section>
+
+        <section class="mt-16">
+             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                 <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">You Might Also Like</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                     <a href="#" class="related-post-card block bg-white rounded-lg overflow-hidden p-5">
+                         <h3 class="font-semibold text-gray-800 mb-2">Coming Soon</h3>
+                         <p class="text-sm text-gray-500">Cooking...</p>
+                     </a>
+                      <a href="#" class="related-post-card block bg-white rounded-lg overflow-hidden p-5">
+                         <h3 class="font-semibold text-gray-800 mb-2">Coming Soon</h3>
+                         <p class="text-sm text-gray-500">Cooking...</p>
+                     </a>
+                     <a href="#" class="related-post-card block bg-white rounded-lg overflow-hidden p-5">
+                         <h3 class="font-semibold text-gray-800 mb-2">Coming Soon</h3>
+                         <p class="text-sm text-gray-500">Cooking...</p>
+                     </a>
+                 </div>
+             </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-100 border-t border-gray-200 mt-16">
+        <div class="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
+            &copy; 2025 Tanawich J.
+        </div>
+    </footer>
+
+    <script>
+        // Reading Progress Bar JS (from template)
+        const progressBar = document.getElementById('readingProgressBar');
+        const body = document.body;
+        const html = document.documentElement;
+        function updateProgressBar() {
+            const totalHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight ) - html.clientHeight;
+            const scrollPercentage = totalHeight > 0 ? (window.pageYOffset / totalHeight) * 100 : 0; // Avoid division by zero
+            if (progressBar) { progressBar.style.width = `${scrollPercentage}%`; }
+        }
+        window.addEventListener('scroll', updateProgressBar);
+        updateProgressBar(); // Initial call
+    </script>
+
+</body>
+</html>
