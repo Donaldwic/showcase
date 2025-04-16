@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title >All Projects</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <style>
+      @font-face {
+        font-family: 'LucideIcons';
+        src: url('https://cdn.jsdelivr.net/npm/lucide-static@latest/font/Lucide.ttf') format('truetype');
+      }
+      .lucide {
+        font-family: 'LucideIcons';
+        font-size: 1.25em;
+        line-height: 1;
+        display: inline-block;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8fafc; /* Light gray background */
+        color: #1f2937; /* Dark gray text */
+      }
+      /* Style for project cards (copied from landing page) */
+      .project-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        background-color: #ffffff; /* Ensure card background is white */
+        border-radius: 0.5rem; /* rounded-lg */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* shadow-md */
+        overflow: hidden; /* Keeps image corners rounded */
+      }
+      .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); /* shadow-lg */
+      }
+      /* Style for skill tags (copied from landing page) */
+      .skill-tag {
+        background-color: #e0f2fe; /* Light blue background */
+        color: #0c4a6e; /* Dark blue text */
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px; /* Pill shape */
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+    </style>
+</head>
+<header class="border-b border-gray-200 bg-white sticky top-0 z-50">
+    <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <!-- Home button -->
+        <a href="../index.html" rel="noopener noreferrer" class="text-lg font-semibold text-gray-800">Tanawich J.</a>
+        <div class="space-x-4">
+            <a href="../index.html" rel="noopener noreferrer" class="home inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                <i class="uil uil-estate"></i> &nbsp; Home
+            </a>
+        </div>
+    </nav>
+</header>
+    
+
+    <main class="py-12 sm:py-16">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-2">
+<!--
+                <div class="project-card">
+                    <img class="h-48 w-full object-cover flex-shrink-0"
+                         src="https://static.vecteezy.com/system/resources/previews/002/286/680/large_2x/view-of-modern-business-skyscraper-glass-and-sky-view-landscape-of-commercial-building-in-a-central-city-free-photo.jpg"
+                         alt="Project Alpha Screenshot"
+                         onerror="this.onerror=null; this.src='../error.html';">
+                    <div class="p-6 flex flex-col flex-grow">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Dynamic CPI Calculation</h3>
+                        <p class="text-gray-600 text-sm mb-4">
+                            This project develops an improved Consumer Price Index that adjusts for consumer substitution when prices change. Using a fixed reference-year basket and elasticity data, it better reflects real spending behavior and provides a more accurate measure of inflation.
+                        </p>
+                        <div class="mb-4 flex flex-wrap gap-2">
+                            <span class="skill-tag">Research</span>
+                            <span class="skill-tag">Economics</span>
+                            <span class="skill-tag">Modeling</span>
+                        </div>
+                        <div class="flex justify-between mt-auto">
+                            <a href="../project/project_dynamic_CPI.html" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm inline-flex items-center gap-1">
+                                <i class="uil uil-eye"></i>  &nbsp; View Project
+                            </a>
+                            <a href="[Link to GitHub Repo]" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-700 font-medium text-sm inline-flex items-center gap-1">
+                                <i class="uil uil-arrow"></i> &nbsp; Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            -->
+                <div class="project-card">
+                     <img class="h-48 w-full object-cover flex-shrink-0"
+                         src="https://cdn.prod.website-files.com/61af51425453b466c43a98ed/632d963de37d2c8a448a0238_model-risk-management-banner%20(1).webp"
+                         alt="Project Beta Screenshot"
+                         onerror="this.onerror=null; this.src='../error.html'">
+                    <div class="p-6 flex flex-col flex-grow">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Pair Trading</h3>
+                        <p class="text-gray-600 text-sm mb-4">
+                            This project develops a market-neutral pair trading strategy targeting Bitcoin-linked companies such as miners and blockchain firms. It involves correlation analysis to identify strong stock pairs and optimization of trade parameters, offering insights into how Bitcoin impacts related equities through quantitative methods.
+                        </p>
+                        <div class="mb-4 flex flex-wrap gap-2">
+                             <span class="skill-tag">Python</span>
+                             <span class="skill-tag">Trading</span>
+                        </div>
+                        <div class="flex justify-between mt-auto">
+                             <a href="[Link to Live Demo]" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm inline-flex items-center gap-1" onerror="this.onerror=null; this.src='error.html'">
+                                <i class="uil uil-eye"></i>  &nbsp; View Project
+                            </a>
+                            <a href="[Link to GitHub Repo]" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-700 font-medium text-sm inline-flex items-center gap-1">
+                                <i class="uil uil-arrow"></i> &nbsp; Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="project-card">
+                    <img class="h-48 w-full object-cover flex-shrink-0"
+                         src="https://t3.ftcdn.net/jpg/03/45/37/40/360_F_345374024_toXIjm8hecDggxAgFZ9nJRvT4v2rlQ4V.jpg"
+                         alt="Project Gamma Screenshot"
+                         onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Image+Error';">
+                    <div class="p-6 flex flex-col flex-grow">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Global CO2 Emissions Analysis</h3>
+                        <p class="text-gray-600 text-sm mb-4">
+                            Analyze historical trends in CO2 emissions globally and by country/region. Identify key contributors and changes over time.
+                        </p>
+                        <div class="mb-4 flex flex-wrap gap-2">
+                            <span class="skill-tag">Numpy</span>
+                            <span class="skill-tag">Pandas</span>
+                            <span class="skill-tag">Matplot</span>
+                        </div>
+                        <div class="flex justify-between mt-auto">
+                            <a href="../project/project_CO2_emission.html" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm inline-flex items-center gap-1">
+                                <i class="uil uil-eye"></i>  &nbsp; View Project
+                            </a>
+                            <a href="[Link to GitHub Repo]" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-700 font-medium text-sm inline-flex items-center gap-1">
+                                <i class="uil uil-arrow"></i> &nbsp; Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="project-card">
+                     <img class="h-48 w-full object-cover flex-shrink-0"
+                         src="https://thumbs.dreamstime.com/b/financial-accounting-16773804.jpg"
+                         alt="Project Delta Screenshot"
+                         onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Image+Error';">
+                    <div class="p-6 flex flex-col flex-grow">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">MK Financial Analysis</h3>
+                        <p class="text-gray-600 text-sm mb-4">
+Analyzed MK Group’s financial performance relative to peers in Thailand’s food and beverage sector, using the Sharpe ratio and key financial metrics through multi-year data and visual comparisons.
+                        </p>
+                        <div class="mb-4 flex flex-wrap gap-2">
+                             <span class="skill-tag">Financial Analysis</span>
+                             <span class="skill-tag">Quantitative Analysis</span>
+                        </div>
+                        <div class="flex justify-between mt-auto">
+                             <a href="[Link to Live Demo]" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm inline-flex items-center gap-1">
+                                <i class="uil uil-eye"></i>  &nbsp; View Project
+                            </a>
+                            <a href="[Link to GitHub Repo]" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-700 font-medium text-sm inline-flex items-center gap-1">
+                                <i class="uil uil-arrow"></i> &nbsp; Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <img class="h-48 w-full object-cover flex-shrink-0"
+                        src="https://wallpapercave.com/wp/wp2921847.jpg"
+                        alt="Project Beta Screenshot"
+                        onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Image+Error';">
+                   <div class="p-6 flex flex-col flex-grow">
+                       <h3 class="text-xl font-semibold text-gray-900 mb-2">Popoviciu Inequality In 2 Dimensions</h3>
+                       <p class="text-gray-600 text-sm mb-4">
+                        This project explores coordinated convexity in 2D functions—convexity in each variable independently and extends Popoviciu's inequality to this context, offering new insights into their properties and applications.
+                       </p>
+                       <div class="mb-4 flex flex-wrap gap-2">
+                            <span class="skill-tag">Research</span>
+                            <span class="skill-tag">Mathematics</span>
+                       </div>
+                       <div class="flex justify-between mt-auto">
+                            <a href="[Link to Live Demo]" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm inline-flex items-center gap-1" >
+                                <i class="uil uil-eye"></i>  &nbsp; View Project
+                           </a>
+                           <a href="[Link to GitHub Repo]" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-700 font-medium text-sm inline-flex items-center gap-1">
+                            <i class="uil uil-arrow"></i> &nbsp; Code
+                           </a>
+                       </div>
+                   </div>
+               </div>
+
+                <div class="project-card">
+                   <img class="h-48 w-full object-cover flex-shrink-0"
+                        src="https://static.vecteezy.com/system/resources/thumbnails/036/364/784/small_2x/ai-generated-stock-market-bull-fighting-bear-top-of-stock-market-graph-generative-ai-photo.jpg"
+                        alt="Project Gamma Screenshot"
+                        onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Image+Error';">
+                   <div class="p-6 flex flex-col flex-grow">
+                       <h3 class="text-xl font-semibold text-gray-900 mb-2">Portfolio Optimization with Black-Litterman Model</h3>
+                       <p class="text-gray-600 text-sm mb-4">
+                        Built a Black-Litterman portfolio optimization model in Python that blends market equilibrium returns with investor views to improve risk-adjusted performance, using Bayesian techniques and backtesting for real-world validation.
+                       </p>
+                       <div class="mb-4 flex flex-wrap gap-2">
+                           <span class="skill-tag">Python</span>
+                           <span class="skill-tag">Financial Model</span>
+                           <span class="skill-tag">Optimization</span>
+                       </div>
+                       <div class="flex justify-between mt-auto">
+                           <a href="[Link to Live Demo]" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm inline-flex items-center gap-1">
+                            <i class="uil uil-eye"></i>  &nbsp; View Project
+                           </a>
+                           <a href="[Link to GitHub Repo]" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-700 font-medium text-sm inline-flex items-center gap-1">
+                            <i class="uil uil-arrow"></i> &nbsp; Code
+                           </a>
+                       </div>
+                   </div>
+               </div>
+
+                <div class="project-card">
+                    <img class="h-48 w-full object-cover flex-shrink-0"
+                        src="https://w0.peakpx.com/wallpaper/269/270/HD-wallpaper-doctor-motivation-medical-study.jpg"
+                        alt="Project Delta Screenshot"
+                        onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Image+Error';">
+                   <div class="p-6 flex flex-col flex-grow">
+                       <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                        An Examination of Thai People's Comprehension of Medical Terminology</h3>
+                       <p class="text-gray-600 text-sm mb-4">
+                        examine whether the level of understanding of medical terminology correlates with age. Data were collected randomly and analyzed using statistical tools, specifically linear regression, independent tests, and chi-square tests.
+                       </p>
+                       <div class="mb-4 flex flex-wrap gap-2">
+                            <span class="skill-tag">Data Collection</span>
+                            <span class="skill-tag">Statistics</span>
+                       </div>
+                       <div class="flex justify-between mt-auto">
+                            <a href="[Link to Live Demo]" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm inline-flex items-center gap-1">
+                                <i class="uil uil-eye"></i>  &nbsp; View Project
+                           </a>
+                           <a href="[Link to GitHub Repo]" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-gray-700 font-medium text-sm inline-flex items-center gap-1">
+                            <i class="uil uil-arrow"></i> &nbsp; Code
+                           </a>
+                       </div>
+                   </div>
+               </div>
+
+                </div> </div>
+    </main>
+
+    <footer class="bg-gray-100 border-t border-gray-200">
+        <div class="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
+            &copy; 2025 Tanawich J. 
+        </div>
+    </footer>
+
+    <div id="redirect-popup" class="hidden fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-xl shadow-lg text-sm transition-opacity duration-700 opacity-0 z-50">
+        Redirecting to fallback page...
+      </div>
+      
+      <div id="loading-screen" class="hidden fixed inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+        <div class="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-gray-700 text-sm">Loading...</p>
+      </div>
+      
+      <script>
+        const loadingScreen = document.getElementById('loading-screen');
+      
+        document.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', function (e) {
+    const href = this.getAttribute('href');
+    const isValidLink = href && !href.includes('[Link');
+
+    // If not valid link → skip to error
+    if (!isValidLink) {
+      e.preventDefault();
+      loadingScreen.classList.remove('hidden');
+      setTimeout(() => {
+        window.location.href = '../error.html';
+      }, 500);
+      return;
+    }
+
+    // If link has class 'home' → open in same tab
+    if (link.classList.contains('home')) {
+      return; // Let it behave normally
+    }
+
+    // Else (for project or external links) → open in new tab
+    e.preventDefault();
+    loadingScreen.classList.remove('hidden');
+    setTimeout(() => {
+      window.open(href, '_blank');
+      loadingScreen.classList.add('hidden');
+    }, 500);
+  });
+});
+      </script>
+</body>
+</html>

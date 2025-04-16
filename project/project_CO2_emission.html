@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project_CO2_emission</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <style>
+      @font-face {
+        font-family: 'LucideIcons';
+        src: url('https://cdn.jsdelivr.net/npm/lucide-static@latest/font/Lucide.ttf') format('truetype');
+      }
+      .lucide {
+        font-family: 'LucideIcons';
+        font-size: 1.25em;
+        line-height: 1;
+        display: inline-block;
+        transition: color 0.2s ease-in-out, transform 0.2s ease-in-out; /* Added transition */
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8fafc;
+        color: #1f2937;
+      }
+      .skill-tag {
+        background-color: #e0f2fe;
+        color: #0c4a6e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .prose {
+        color: #374151;
+        line-height: 1.75;
+        max-width: 65ch;
+      }
+      .prose h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-top: 2em;
+        margin-bottom: 1em;
+        color: #111827;
+      }
+      .prose p {
+        margin-top: 1.25em;
+        margin-bottom: 1.25em;
+      }
+      .prose a {
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .prose a:hover {
+        text-decoration: underline;
+      }
+      .prose ul {
+        margin-top: 1.25em;
+        margin-bottom: 1.25em;
+        padding-left: 1.75em;
+        list-style-type: disc;
+      }
+       .prose li {
+         margin-top: 0.5em;
+         margin-bottom: 0.5em;
+       }
+      .prose pre {
+        background-color: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        overflow-x: auto;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: #111827;
+        margin-top: 1.5em;
+        margin-bottom: 1.5em;
+      }
+      .prose code {
+         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+      .prose pre code {
+          background-color: transparent;
+          padding: 0;
+          border-radius: 0;
+          font-size: inherit;
+      }
+      .prose code::before, .prose code::after {
+          content: none;
+      }
+      .gallery-grid img {
+        border-radius: 0.375rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+      }
+       .gallery-grid img:hover {
+         transform: scale(1.03);
+       }
+       .technical-image-container {
+         margin-top: 1.5em;
+         margin-bottom: 1.5em;
+         border: 1px solid #e5e7eb;
+         border-radius: 0.375rem;
+         padding: 0.5rem;
+         background-color: #f9fafb;
+         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+       }
+       .technical-image-container img {
+         border-radius: 0.25rem;
+         width: 100%;
+         height: auto;
+       }
+       #likeButtonContainer {
+           cursor: pointer;
+           user-select: none; /* Prevent text selection on rapid clicks */
+       }
+       /* Style for the heart icon itself */
+       #likeButtonContainer .lucide {
+            /* Base color set in HTML, hover defined below */
+       }
+        /* Hover effect - always show red on hover */
+       #likeButtonContainer:hover .lucide {
+            color: #ef4444; /* red-500 */
+       }
+       /* Class for liked state */
+       .liked .lucide {
+            color: #ef4444; /* red-500 */
+       }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                 <div>
+                    <h1 class="text-xl font-semibold text-gray-800">Projects</h1>
+                 </div>
+                 <a href="../index.html" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                    <i class="uil uil-estate"></i> &nbsp; Home
+                 </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="py-10 sm:py-14">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <div class="mb-8 sm:mb-10">
+                <img src="https://t3.ftcdn.net/jpg/03/45/37/40/360_F_345374024_toXIjm8hecDggxAgFZ9nJRvT4v2rlQ4V.jpg"
+                     alt="[Project Name] Hero Image"
+                     class="w-full h-auto rounded-lg shadow-md object-cover"
+                     onerror="this.onerror=null; this.src='https://placehold.co/1200x600/cccccc/ffffff?text=Image+Error';">
+            </div>
+
+            <section class="mb-8 sm:mb-10">
+                <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-2">Global CO2 Emissions Analysis</h1>
+                <p class="text-lg text-indigo-600 font-medium mb-4">Analyze historical trends in CO2 emissions globally and by country/region. Identify key contributors and changes over time.</p>
+
+                <div class="flex flex-wrap items-center gap-x-6 gap-y-4 mb-6">
+                    <div id="likeButtonContainer" class="inline-flex items-center justify-center px-5 py-2.5 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition" title="Like this project (visual only, resets on reload)">
+                        <i class="uil uil-heart"></i> <span id="likeCount" class="ml-1.5 font-medium text-gray-600"> &nbsp;0</span> </div>
+                    <a href="[Link to GitHub Repo]" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-5 py-2.5 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                        <i class="uil uil-github"></i>  &nbsp; Code Repository
+                    </a>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-sm font-medium text-gray-600 mr-2">Skills:</span>
+                    <span class="skill-tag">Numpy</span>
+                    <span class="skill-tag">Pandas</span>
+                    <span class="skill-tag">Matplot</span>
+                </div>
+            </section>
+
+            <section class="mb-8 sm:mb-10">
+                <div class="prose prose-indigo lg:prose-lg mx-auto">
+                    <h2>Project Details</h2>
+                    <p>
+                        Start with a high-level overview of the project. What problem does it solve? Who is it for? What were the main goals?
+                    </p>
+                    <p>
+                        Elaborate on the key features and functionalities. You can use bullet points or numbered lists if helpful. Explain the user flow or the core logic.
+                    </p>
+                    <ul>
+                        <li>Feature 1: Description of the feature.</li>
+                        <li>Feature 2: Description of the feature.</li>
+                        <li>Feature 3: Description of the feature.</li>
+                    </ul>
+                    <p>
+                        Discuss any challenges faced during development and how you overcame them. What did you learn from building this project? What are potential future improvements?
+                    </p>
+                </div>
+            </section>
+
+            <section class="mb-8 sm:mb-10">
+                 <div class="prose prose-indigo lg:prose-lg mx-auto">
+                    <p>
+                        <h2>1. Set Up</h2>
+                    </p>
+                    <pre><code class="language-python">
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np # Used for filtering potentially
+                        
+# --- Configuration ---
+DATA_FILE = 'owid-co2-data.csv'
+# Define countries/regions to specifically exclude from country rankings
+# OWID includes many aggregates (continents, income groups etc.)
+AGGREGATES_TO_EXCLUDE = ['World', 'Asia', 'Oceania', 'Europe', 'Africa', 'North America', 'South America',
+'Upper-middle-income countries', 'High-income countries', 'Lower-middle-income countries',
+'Low-income countries', 'European Union (27)', 'European Union (28)',
+'Asia (excl. China & India)', 'Europe (excl. EU-27)', 'Europe (excl. EU-28)',
+'North America (excl. USA)', 'South America (excl. Brazil)' ,
+'International transport' # Usually separated]
+<br>
+# Countries to highlight in per-capita comparison
+COUNTRIES_FOR_PER_CAPITA = ['United States', 'China', 'India', 'Germany', 'United Kingdom', 'Thailand', 'Qatar']
+START_YEAR_PLOTS = 1900 # Start year for some time-series plots
+TOP_N_COUNTRIES = 15  # Number of top countries to show
+<br>
+# --- Load Data ---
+try:
+  df = pd.read_csv(DATA_FILE)
+  print(f"Successfully loaded data from {DATA_FILE}")
+  print(f"DataFrame shape: {df.shape}")
+ # print(df.info()) # Uncomment to see column details and types
+ # print(df.head()) # Uncomment to see first few rows
+except FileNotFoundError:
+ print(f"Error: Could not find the data file '{DATA_FILE}'.")
+ print("Please download it from Our World In Data (github.com/owid/co2-data) and place it in the same directory.")
+ exit()
+<br>
+# --- Data Preparation ---
+# Fill NaNs in CO2 column with 0 for calculations where appropriate (e.g., sorting)
+# Be careful, this might affect averages if not handled correctly contextually.
+# For plotting specific countries' trends, NaNs are often better left as NaNs (or handled via dropna)
+df['co2'] = df['co2'].fillna(0)
+df['co2_per_capita'] = df['co2_per_capita'].fillna(0) # Or np.nan
+df['cumulative_co2'] = df['cumulative_co2'].fillna(0) # Or np.nan
+<br>
+# Find the most recent year with data available
+latest_year = df['year'].max()
+print(f"Most recent year in dataset: {latest_year}")
+<br>
+# Set plot style
+sns.set_style("whitegrid")
+plt.rcParams['figure.figsize'] = (12, 6) # Default figure size
+                        </code></pre>
+
+                        <h2>2. Analyse Global CO2 Emission</h2>
+                    </p>
+                    <pre><code class="language-python">
+#Global Annual CO2 Emissions Trend
+print("\n--- Plotting Global Annual CO2 Emissions ---")
+df_world = df[df['country'] == 'World'].copy()
+df_world_filtered = df_world[df_world['year'] >= START_YEAR_PLOTS]
+
+plt.figure() # Create a new figure
+plt.plot(df_world_filtered['year'], df_world_filtered['co2'], label='Global CO2 Emissions', color='blue')
+plt.title(f'Global Annual CO2 Emissions ({START_YEAR_PLOTS}-{latest_year})')
+plt.xlabel('Year')
+plt.ylabel('Annual CO2 Emissions (Million Tonnes)')
+plt.legend()
+plt.tight_layout()
+plt.show()
+                        </code></pre>
+                        <div class="technical-image-container">
+                            <img src="../IMAGE/Global.png"
+                                 alt="[Technical Diagram/Screenshot Description]"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/800x450/cccccc/ffffff?text=Image+Error';">
+                       </div>
+                       <h2>3. Visualize Top15 CO2 emitting countries in 2023</h2>
+                    </p>
+                    <pre><code class="language-python">
+#Top Emitting Countries (Most Recent Year)
+
+print(f"\n--- Plotting Top {TOP_N_COUNTRIES} Emitting Countries ({latest_year}) ---")
+# Filter data for the latest year and exclude aggregate regions/non-countries
+df_latest = df[df['year'] == latest_year].copy()
+# Exclude known aggregates by name - more robust than relying solely on iso_code presence
+df_latest_countries = df_latest[~df_latest['country'].isin(AGGREGATES_TO_EXCLUDE)]
+
+# Sort by CO2 emissions and take top N
+top_emitters_latest = df_latest_countries.sort_values(by='co2', ascending=False).head(TOP_N_COUNTRIES)
+
+print(f"Top {TOP_N_COUNTRIES} Emitters ({latest_year}):\n{top_emitters_latest[['country', 'co2']]}")
+
+plt.figure()
+sns.barplot(data=top_emitters_latest, x='co2', y='country', palette='viridis')
+plt.title(f'Top {TOP_N_COUNTRIES} CO2 Emitting Countries in {latest_year}')
+plt.xlabel('Annual CO2 Emissions (Million Tonnes)')
+plt.ylabel('Country')
+plt.tight_layout()
+plt.show()
+                        </code></pre>
+                        <div class="technical-image-container">
+                            <img src="../IMAGE/2023_emission.png"
+                                 alt="[Technical Diagram/Screenshot Description]"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/800x450/cccccc/ffffff?text=Image+Error';">
+                       </div>
+
+                       <h2>4. Visualize Top15 CO2 cumulative emitting countries</h2>
+                    </p>
+                    <pre><code class="language-python">
+#Top Countries by Cumulative CO2 Emissions
+print(f"\n--- Plotting Top {TOP_N_COUNTRIES} Countries by Cumulative CO2 Emissions (up to {latest_year}) ---")
+# We use the latest year data again as cumulative CO2 is usually calculated up to that point
+# Ensure we are using the df_latest_countries filtered dataframe from the previous step
+top_emitters_cumulative = df_latest_countries.sort_values(by='cumulative_co2', ascending=False).head(TOP_N_COUNTRIES)
+
+print(f"Top {TOP_N_COUNTRIES} Cumulative Emitters (up to {latest_year}):\n{top_emitters_cumulative[['country', 'cumulative_co2']]}")
+
+plt.figure()
+sns.barplot(data=top_emitters_cumulative, x='cumulative_co2', y='country', palette='magma')
+plt.title(f'Top {TOP_N_COUNTRIES} Countries by Cumulative CO2 Emissions (up to {latest_year})')
+plt.xlabel('Cumulative CO2 Emissions (Million Tonnes)')
+plt.ylabel('Country')
+plt.tight_layout()
+plt.show()
+                        </code></pre>
+                        <div class="technical-image-container">
+                            <img src="../IMAGE/Cumulative_emission.png"
+                                 alt="[Technical Diagram/Screenshot Description]"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/800x450/cccccc/ffffff?text=Image+Error';">
+                       </div>
+                       <h2>5. Visulize Annual_CO2_percapita</h2>
+                    </p>
+                    <pre><code class="language-python">
+CO2 Emissions Per Capita for Selected Countries
+print(f"\n--- Plotting CO2 Emissions Per Capita for Selected Countries ---")
+df_per_capita = df[df['country'].isin(COUNTRIES_FOR_PER_CAPITA)].copy()
+df_per_capita_filtered = df_per_capita[df_per_capita['year'] >= START_YEAR_PLOTS]
+
+# Drop rows where per capita data is missing for plotting trend lines
+df_per_capita_filtered = df_per_capita_filtered.dropna(subset=['co2_per_capita'])
+
+plt.figure(figsize=(14, 7)) # Make this plot slightly wider
+sns.lineplot(data=df_per_capita_filtered, x='year', y='co2_per_capita', hue='country', marker='o', markersize=4)
+plt.title(f'Annual CO2 Emissions Per Capita ({START_YEAR_PLOTS}-{latest_year})')
+plt.xlabel('Year')
+plt.ylabel('CO2 Emissions Per Capita (Tonnes per person)')
+plt.legend(title='Country')
+plt.tight_layout()
+plt.show()
+                        </code></pre>
+                        <div class="technical-image-container">
+                            <img src="../IMAGE/Annual_CO2_percapita.png"
+                                 alt="[Technical Diagram/Screenshot Description]"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/800x450/cccccc/ffffff?text=Image+Error';">
+                       </div>
+                    <p>
+                        Thanks to author for dedicating to gather these the data source.
+                        <br> 
+                        <h3>Reference:</h3>
+                        Hannah Ritchie, Pablo Rosado and Max Roser (2023) - “CO₂ and Greenhouse Gas Emissions” Published online at OurWorldinData.org. Retrieved from: 'https://ourworldindata.org/co2-and-greenhouse-gas-emissions' [Online Resource]
+                    </p>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Gallery</h2>
+                <div class="gallery-grid grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+                  <img src="../IMAGE/Global.png" alt="Project Screenshot 1" class="gallery-img" onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Image+Error';">
+                  <img src="../IMAGE/2023_emission.png" alt="Project Screenshot 2" class="gallery-img" onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Image+Error';">
+                  <img src="../IMAGE/Cumulative_emission.png" alt="Project Screenshot 3" class="gallery-img" onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Image+Error';">
+                  <img src="../IMAGE/Annual_CO2_percapita.png" alt="Project Screenshot 4" class="gallery-img" onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Image+Error';">
+                </div>
+              </section>
+              
+              <!-- Lightbox Overlay -->
+              <div id="lightbox" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50" onclick="this.classList.add('hidden')">
+                <img id="lightbox-img" class="max-w-full max-h-full" />
+              </div>
+
+        </div>
+    </main>
+
+    <footer class="bg-gray-100 border-t border-gray-200 mt-12 sm:mt-16">
+        <div class="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
+            &copy; 2025 Tanawich J.
+        </div>
+    </footer>
+
+    <script>
+        const likeButtonContainer = document.getElementById('likeButtonContainer');
+        const likeCountSpan = document.getElementById('likeCount');
+
+        if (likeButtonContainer && likeCountSpan) {
+            // --- State Variables ---
+            let currentLikes = parseInt(likeCountSpan.textContent, 10);
+            let isLiked = false; // Initial state: not liked
+
+            // --- Function to update visual state ---
+            function updateLikeButtonVisuals() {
+                 const heartIcon = likeButtonContainer.querySelector('.lucide');
+                 if (heartIcon) {
+                    if (isLiked) {
+                        // Liked state: red heart
+                        likeButtonContainer.classList.add('liked'); // Use class for styling liked state
+                        likeButtonContainer.title = "Unlike this project"; // Update tooltip
+                    } else {
+                        // Unliked state: gray heart
+                         likeButtonContainer.classList.remove('liked');
+                         likeButtonContainer.title = "Like this project"; // Update tooltip
+                    }
+                 }
+                 // Update the displayed count
+                 likeCountSpan.textContent = currentLikes;
+            }
+
+            // --- Event Listener ---
+            likeButtonContainer.addEventListener('click', () => {
+                if (isLiked) {
+                    // --- Unlike Action ---
+                    currentLikes--;
+                    isLiked = false;
+                } else {
+                    // --- Like Action ---
+                    currentLikes++;
+                    isLiked = true;
+                }
+
+                // Update the button's appearance and count
+                updateLikeButtonVisuals();
+
+                // Reminder: State resets on page load.
+            });
+
+             // --- Set Initial Visual State ---
+             // (The initial HTML sets the gray color, this ensures title is correct)
+             updateLikeButtonVisuals();
+
+        } else {
+            console.error("Like button elements not found!");
+        }
+        
+  const images = document.querySelectorAll('.gallery-img');
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+
+  images.forEach(img => {
+    img.addEventListener('click', () => {
+      lightboxImg.src = img.src;
+      lightbox.classList.remove('hidden');
+    });
+  });
+
+
+    </script>
+
+</body>
+</html>
