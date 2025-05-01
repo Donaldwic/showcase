@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridge Game - Bright Theme</title> <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Custom styles - Bright Theme */
+      body {
+          font-family: 'Inter', sans-serif;
+          background-color: #f8fafc; /* BRIGHT THEME CHANGE: Very light gray/off-white background */
+          color: #1f2937; /* BRIGHT THEME CHANGE: Dark gray text */
+      }
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+      .card {
+          border: 1px solid #cbd5e1; /* BRIGHT THEME CHANGE: Light gray border */
+          border-radius: 6px;
+          padding: 8px 5px;
+          margin: 2px;
+          min-width: 48px;
+          text-align: center;
+          cursor: pointer;
+          background-color: #ffffff; /* BRIGHT THEME CHANGE: White card face */
+          color: #1f2937; /* BRIGHT THEME CHANGE: Dark text on card */
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Softer shadow */
+          font-size: 0.95rem;
+          font-weight: 600;
+          display: inline-block;
+          user-select: none;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .card:hover:not(.disabled):not(.played) {
+          transform: translateY(-6px) scale(1.05);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      }
+      .card.red { color: #dc2626; } /* Keep red strong */
+      .card.black { color: #111827; } /* Keep black strong */
+
+      .card.disabled {
+          cursor: not-allowed;
+          opacity: 0.5;
+          background-color: #e2e8f0; /* BRIGHT THEME CHANGE: Lighter gray disabled */
+          color: #64748b;
+          box-shadow: none;
+          transform: none;
+      }
+      .card.played {
+          opacity: 0.4;
+          cursor: default;
+          transform: none;
+          box-shadow: none;
+          background-color: #f1f5f9; /* BRIGHT THEME CHANGE: Very light gray for played */
+      }
+       .card.played:hover {
+           transform: none;
+           box-shadow: none;
+      }
+
+      /* Game Areas Styling */
+      .game-area {
+          border: 1px solid #e2e8f0; /* BRIGHT THEME CHANGE: Lighter border */
+          border-radius: 10px;
+          padding: 15px;
+          margin-bottom: 15px;
+          background-color: #ffffff; /* BRIGHT THEME CHANGE: White background for areas */
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
+      .hand-area {
+           background-color: #f1f5f9; /* BRIGHT THEME CHANGE: Slightly off-white for hands */
+      }
+       .table-area {
+          background-color: #dcfce7; /* BRIGHT THEME CHANGE: Light green felt */
+          border-color: #bbf7d0;
+       }
+
+      .player-label {
+          font-weight: 700;
+          margin-bottom: 10px;
+          color: #475569; /* BRIGHT THEME CHANGE: Medium-dark gray for labels */
+          text-align: center;
+          font-size: 0.85em;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+      }
+      .table-card-container { display: flex; justify-content: center; align-items: center; min-height: 80px; position: relative; }
+      .table-card { position: absolute; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+      .message {
+          min-height: 24px;
+          font-weight: 600;
+          color: #1d4ed8; /* BRIGHT THEME CHANGE: Blue for messages */
+      }
+
+      /* Bidding Styles */
+      .bid-button {
+          transition: background-color 0.2s ease, transform 0.1s ease; margin: 3px; padding: 7px 12px;
+          border-radius: 6px; font-size: 0.9rem; font-weight: 600; border: 1px solid #cbd5e1; /* BRIGHT THEME CHANGE: Add light border */
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      }
+      .bid-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      .bid-button:active:not(:disabled) { transform: translateY(0px); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+      .bid-button:disabled { opacity: 0.5; cursor: not-allowed; background-color: #e2e8f0; border-color: #e2e8f0; color: #94a3b8;} /* BRIGHT THEME CHANGE: Disabled style */
+
+      /* Specific Bid Button Colors */
+      .bid-level-button { background-color: #eff6ff; color: #3b82f6; border-color: #bfdbfe;} /* BRIGHT THEME CHANGE: Light Blue */
+      .bid-level-button:hover:not(:disabled) { background-color: #dbeafe; }
+      .bid-pass-button { background-color: #f1f5f9; color: #475569; border-color: #e2e8f0;} /* BRIGHT THEME CHANGE: Light Gray */
+      .bid-pass-button:hover:not(:disabled) { background-color: #e2e8f0; }
+      .bid-double-button { background-color: #fee2e2; color: #ef4444; border-color: #fecaca;} /* BRIGHT THEME CHANGE: Light Red */
+      .bid-double-button:hover:not(:disabled) { background-color: #fecaca; }
+      .bid-redouble-button { background-color: #eff6ff; color: #3b82f6; border-color: #bfdbfe;} /* BRIGHT THEME CHANGE: Light Blue */
+      .bid-redouble-button:hover:not(:disabled) { background-color: #dbeafe; }
+      .bid-suggest-button { background-color: #d1fae5; color: #10b981; border-color: #a7f3d0;} /* BRIGHT THEME CHANGE: Light Emerald Green */
+      .bid-suggest-button:hover:not(:disabled) { background-color: #a7f3d0; }
+      .play-suggest-button { background-color: #fef3c7; color: #f59e0b; border-color: #fde68a;} /* BRIGHT THEME CHANGE: Light Amber */
+      .play-suggest-button:hover:not(:disabled) { background-color: #fde68a; }
+
+
+      .bid-history-entry {
+          display: inline-block; border: 1px solid #e2e8f0; padding: 3px 7px; margin: 2px; border-radius: 4px;
+          font-size: 0.85rem; font-weight: 500; min-width: 55px; text-align: center;
+          background-color: #f8fafc; /* BRIGHT THEME CHANGE: Off-white background */
+          color: #475569; /* BRIGHT THEME CHANGE: Medium gray text */
+      }
+      /* Colors for suits in history (using background now for contrast) */
+      .bid-history-entry.pass { background-color: #e2e8f0; color: #475569; } /* Light Gray */
+      .bid-history-entry.dbl { background-color: #ef4444; color: white; font-weight: bold; } /* Red */
+      .bid-history-entry.rdbl { background-color: #3b82f6; color: white; font-weight: bold; } /* Blue */
+      .bid-history-entry.C { background-color: #60a5fa; color: white; } /* Clubs */
+      .bid-history-entry.D { background-color: #fbbf24; color: #422006;} /* Diamonds */
+      .bid-history-entry.H { background-color: #f87171; color: white; } /* Hearts */
+      .bid-history-entry.S { background-color: #a78bfa; color: white; } /* Spades */
+      .bid-history-entry.NT { background-color: #64748b; color: white; } /* NT */
+
+      .restart-button {
+           background-color: #4f46e5; color: white; /* BRIGHT THEME CHANGE: Indigo */
+           transition: background-color 0.2s ease, transform 0.1s ease;
+           font-weight: bold; padding: 10px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .restart-button:hover { background-color: #4338ca; transform: translateY(-1px); box-shadow: 0 3px 6px rgba(0,0,0,0.15); }
+      .restart-button:active { transform: translateY(0px); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) { /* ... existing styles ... */ }
+      @media (max-width: 480px) { /* ... existing styles ... */ }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <div class="container mx-auto p-4 max-w-5xl bg-white rounded-lg shadow-lg"> <h1 class="text-3xl font-bold text-center mb-6 text-gray-800 tracking-wide">Bridge Card Game</h1>
+
+      <div id="info-area" class="game-area mb-4">
+          <div class="player-label">Game Info</div>
+          <p id="message" class="message text-center mb-2">Initializing...</p>
+          <div class="flex flex-wrap justify-around mt-2 text-sm gap-x-4 gap-y-1 text-gray-600"> <span>Dealer: <span id="dealer-display" class="font-bold text-gray-800">N/A</span></span>
+              <span>Contract: <span id="contract-display" class="font-bold text-gray-800">Not Set</span></span>
+              <span>By: <span id="declarer-display" class="font-bold text-gray-800">N/A</span></span>
+              <span>Dummy: <span id="dummy-display" class="font-bold text-gray-800">N/A</span></span>
+              <span>Lead: <span id="lead-player-display" class="font-bold text-gray-800">N/A</span></span>
+          </div>
+           <div class="flex flex-wrap justify-around mt-3 text-sm gap-x-4 gap-y-1 text-gray-600"> <span>Tricks Won (NS): <span id="ns-tricks" class="font-bold text-gray-800">0</span></span>
+              <span>Tricks Won (EW): <span id="ew-tricks" class="font-bold text-gray-800">0</span></span>
+              <span>Trick #: <span id="trick-number" class="font-bold text-gray-800">0</span></span>
+          </div>
+           <div id="hcp-info" class="text-center mt-3 text-sm text-gray-500 hidden"> Your (South) HCP: <span id="south-hcp" class="font-bold text-gray-700">0</span>
+          </div>
+           <div id="score-info" class="text-center mt-3 text-lg font-bold text-green-600 hidden"> Score: <span id="score-display">0</span>
+          </div>
+      </div>
+
+       <div id="bidding-area" class="game-area mb-4 hidden">
+          <div class="player-label">Bidding</div>
+          <div id="bid-controls" class="text-center mb-3 hidden">
+               <p class="text-sm mb-2 text-gray-700">Your turn to bid (South):</p> <div id="bid-suggestion-area" class="my-2 text-sm hidden">
+                   Suggestion: <span id="bid-suggestion" class="font-bold text-blue-600"></span> </div>
+               <button id="suggest-bid-button" class="bid-button bid-suggest-button">Suggest Bid</button>
+               <button id="double-button" class="bid-button bid-double-button" disabled>Double</button>
+               <button id="redouble-button" class="bid-button bid-redouble-button" disabled>Redouble</button>
+               <button id="pass-button" class="bid-button bid-pass-button">Pass</button>
+          </div>
+           <div id="bid-history-container" class="mt-2 text-center">
+               <div id="dealer-history-label" class="player-label text-xs mb-1 text-gray-500">Bidding History (Dealer: N/A)</div> <div id="bid-history" class="flex flex-wrap justify-center gap-1 p-2 bg-gray-100 rounded min-h-[30px]"> </div>
+           </div>
+      </div>
+
+       <div id="play-suggestion-area" class="text-center mb-4 hidden">
+            <button id="suggest-play-button" class="bid-button play-suggest-button">Suggest Play</button>
+            <span id="play-suggestion" class="ml-2 text-sm text-orange-600 font-semibold"></span> </div>
+
+      <div id="north-hand-area" class="game-area hand-area mb-4">
+          <div class="player-label">North <span id="north-role" class="text-xs italic"></span></div>
+          <div id="north-hand" class="text-center min-h-[60px]"></div>
+      </div>
+      <div class="table-area game-area mb-4 relative">
+          <div class="player-label mb-2 text-green-900">Table</div> <div id="table" class="table-card-container h-40">
+               <span class="absolute top-1 left-1/2 transform -translate-x-1/2 text-xs text-green-800 font-semibold">N</span>
+               <span class="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-green-800 font-semibold">S</span>
+               <span class="absolute top-1/2 left-2 transform -translate-y-1/2 text-xs text-green-800 font-semibold">W</span>
+               <span class="absolute top-1/2 right-2 transform -translate-y-1/2 text-xs text-green-800 font-semibold">E</span>
+          </div>
+      </div>
+      <div id="south-hand-area" class="game-area hand-area">
+           <div class="player-label">South (You) <span id="south-role" class="text-xs italic"></span></div>
+          <div id="south-hand" class="text-center min-h-[60px]"></div>
+      </div>
+      <div id="east-hand-area" class="game-area hand-area mb-4 hidden">
+          <div class="player-label">East <span id="east-role" class="text-xs italic"></span></div>
+          <div id="east-hand" class="text-center min-h-[60px]"></div>
+      </div>
+       <div id="west-hand-area" class="game-area hand-area mb-4 hidden">
+          <div class="player-label">West <span id="west-role" class="text-xs italic"></span></div>
+          <div id="west-hand" class="text-center min-h-[60px]"></div>
+      </div>
+
+       <div class="text-center mt-6">
+          <button id="restart-button" class="restart-button hidden">
+              Play Again?
+          </button>
+      </div>
+  </div>
+
+    <script>
+        // --- Constants and Game State ---
+        const SUITS = ['S', 'H', 'D', 'C'];
+        const SUIT_NAMES = { 'S': 'Spades', 'H': 'Hearts', 'D': 'Diamonds', 'C': 'Clubs', 'NT': 'No Trump'};
+        const SUIT_SYMBOLS = { 'S': '♠', 'H': '♥', 'D': '♦', 'C': '♣', 'NT': 'NT' };
+        const BID_SUIT_ORDER = ['C', 'D', 'H', 'S', 'NT']; // Order for bidding hierarchy
+        const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
+        const PLAYERS = ['N', 'E', 'S', 'W'];
+        const PARTNERS = { N: 'S', S: 'N', E: 'W', W: 'E' };
+        const HCP_VALUES = { 'A': 4, 'K': 3, 'Q': 2, 'J': 1 };
+
+        // Scoring Constants (Simplified, Non-Vulnerable)
+        const SCORE_PER_TRICK = { C: 20, D: 20, H: 30, S: 30, NT: { first: 40, others: 30 } };
+        const BONUS_GAME_NV = 300;
+        const BONUS_PART_SCORE_NV = 50;
+        const BONUS_SMALL_SLAM_NV = 500;
+        const BONUS_GRAND_SLAM_NV = 1000;
+        const BONUS_CONTRACT_MADE_NV = { dbl: 50, rdbl: 100 }; // Bonus for making a doubled/redoubled contract
+        const PENALTY_UNDERTRICK_NV = 50;
+        const PENALTY_UNDERTRICK_NV_DBL = { first: 100, secondThird: 200, subsequent: 300 };
+        const PENALTY_UNDERTRICK_NV_RDBL = { first: 200, secondThird: 400, subsequent: 600 };
+
+        let deck = [];
+        let hands = { N: [], E: [], S: [], W: [] };
+        let gamePhase = 'initializing'; // initializing, dealing, bidding, waiting-for-lead, playing, trick-end, game-over
+        let dealerIndex = Math.floor(Math.random() * 4); // Random starting dealer
+        let contract = null; // { level: 3, suit: 'NT', bidder: 'S', doubled: false, redoubled: false }
+        let declarer = null; // Player who is declarer (e.g., 'S')
+        let dummy = null;    // Player who is dummy (e.g., 'N')
+        let currentBidderIndex = 0;
+        let bidHistory = []; // { player: 'N', bid: '1C'/'Pass'/'X'/'XX' }
+        let highestBid = null; // { level: 1, suit: 'C', player: 'N', indexInHistory: 0 } -> player who made the highest bid
+        let lastAction = null; // Tracks last bid/pass/double/redouble for enabling buttons
+        let passesInARow = 0;  // Consecutive passes
+
+        let currentTrickCards = []; // Stores { player: 'N', card: { suit: 'S', rank: 'A' } } for the current trick
+        let trickLeaderIndex = -1; // Index of player leading the current trick
+        let currentPlayerIndex = -1; // Index of player whose turn it is to play a card
+        let leadSuit = null; // Suit led in the current trick
+        let tricksWon = { NS: 0, EW: 0 };
+        let trickNumber = 0; // Starts at 1 for the first trick
+        let isDummyRevealed = false;
+        let finalScore = 0;
+
+
+        // --- DOM Elements ---
+        const dealerDisplayEl = document.getElementById('dealer-display');
+        const dummyDisplayEl = document.getElementById('dummy-display');
+        const scoreInfoDiv = document.getElementById('score-info');
+        const scoreDisplayEl = document.getElementById('score-display');
+        const doubleButton = document.getElementById('double-button');
+        const redoubleButton = document.getElementById('redouble-button');
+        const dealerHistoryLabel = document.getElementById('dealer-history-label');
+        const northHandDiv = document.getElementById('north-hand');
+        const southHandDiv = document.getElementById('south-hand');
+        const eastHandDiv = document.getElementById('east-hand');
+        const westHandDiv = document.getElementById('west-hand');
+        const northHandArea = document.getElementById('north-hand-area');
+        const southHandArea = document.getElementById('south-hand-area');
+        const eastHandArea = document.getElementById('east-hand-area');
+        const westHandArea = document.getElementById('west-hand-area');
+        const northRoleSpan = document.getElementById('north-role');
+        const southRoleSpan = document.getElementById('south-role');
+        const eastRoleSpan = document.getElementById('east-role');
+        const westRoleSpan = document.getElementById('west-role');
+        const tableDiv = document.getElementById('table');
+        const messageEl = document.getElementById('message');
+        const nsTricksEl = document.getElementById('ns-tricks');
+        const ewTricksEl = document.getElementById('ew-tricks');
+        const trickNumberEl = document.getElementById('trick-number');
+        const restartButton = document.getElementById('restart-button');
+        const contractDisplayEl = document.getElementById('contract-display');
+        const declarerDisplayEl = document.getElementById('declarer-display');
+        const leadPlayerDisplayEl = document.getElementById('lead-player-display');
+        const biddingAreaDiv = document.getElementById('bidding-area');
+        const bidControlsDiv = document.getElementById('bid-controls');
+        const bidHistoryDiv = document.getElementById('bid-history');
+        const hcpInfoDiv = document.getElementById('hcp-info');
+        const southHcpEl = document.getElementById('south-hcp');
+        const bidSuggestionArea = document.getElementById('bid-suggestion-area');
+        const bidSuggestionSpan = document.getElementById('bid-suggestion');
+        const suggestBidButton = document.getElementById('suggest-bid-button');
+        const passButton = document.getElementById('pass-button');
+        const playSuggestionArea = document.getElementById('play-suggestion-area');
+        const playSuggestionSpan = document.getElementById('play-suggestion');
+        const suggestPlayButton = document.getElementById('suggest-play-button');
+
+
+        // --- Card & Hand Functions ---
+        function createDeck() { deck = []; SUITS.forEach(s => RANKS.forEach(r => deck.push({ suit: s, rank: r }))); }
+        function shuffleDeck() { for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } }
+        function dealCards() {
+            hands = { N: [], E: [], S: [], W: [] };
+            deck.forEach((card, i) => hands[PLAYERS[i % 4]].push({...card, played: false}));
+            PLAYERS.forEach(p => sortHand(hands[p]));
+        }
+        function sortHand(hand) {
+            const suitOrder = { 'S': 0, 'H': 1, 'D': 2, 'C': 3 };
+            const rankOrder = RANKS.reduce((o, r, i) => { o[r] = i; return o; }, {});
+            hand.sort((a, b) => suitOrder[a.suit] !== suitOrder[b.suit] ? suitOrder[a.suit] - suitOrder[b.suit] : rankOrder[b.rank] - rankOrder[a.rank]);
+        }
+        function getRankValue(rank) { return RANKS.indexOf(rank); }
+        function getCardDisplay(card) { return `${SUIT_SYMBOLS[card.suit]}${card.rank}`; }
+        function getCardColorClass(suit) { return (suit === 'H' || suit === 'D') ? 'red' : 'black'; }
+        function calculateHCP(hand) { return hand.reduce((sum, card) => sum + (HCP_VALUES[card.rank] || 0), 0); }
+        // --- Basic AI/Suggestion Helpers (Can be expanded significantly) ---
+        function getSuitLengths(hand) {
+             const lengths = { S: 0, H: 0, D: 0, C: 0 };
+             // Use the full hand during bidding, only unplayed cards during play
+             const relevantHand = (gamePhase === 'bidding' || gamePhase === 'dealing' || gamePhase === 'initializing')
+                                ? hand
+                                : hand.filter(c => !c.played);
+             relevantHand.forEach(card => { if (card.suit) lengths[card.suit]++; });
+             return lengths;
+        }
+        function calculateLengthPoints(hand) {
+            const lengths = getSuitLengths(hand); let points = 0;
+            Object.values(lengths).forEach(len => { if (len >= 5) points += (len - 4); }); return points;
+        }
+        function calculateTotalPoints(hand) { return calculateHCP(hand) + calculateLengthPoints(hand); }
+
+
+        // --- UI Functions ---
+        function renderHand(player) {
+            let handDiv;
+            switch (player) {
+                case 'N': handDiv = northHandDiv; break;
+                case 'S': handDiv = southHandDiv; break;
+                case 'E': handDiv = eastHandDiv; break;
+                case 'W': handDiv = westHandDiv; break;
+                default: return;
+            }
+            handDiv.innerHTML = ''; // Clear previous rendering
+
+            // Visibility: South always visible, Dummy revealed after lead, All visible at game over
+            const isVisible = (player === 'S') ||
+                              (player === dummy && isDummyRevealed) ||
+                              (gamePhase === 'game-over');
+
+            const currentTurnPlayer = PLAYERS[currentPlayerIndex];
+            const playerIsUser = (player === 'S');
+            const playerIsDummy = (player === dummy);
+            const userIsDeclarer = (declarer === 'S');
+
+            // Determine if the user can interact with this hand *during the play phase*
+            let canUserClickThisHandDuringPlay = false;
+             if ( (playerIsUser && currentTurnPlayer === 'S') ||
+                  (playerIsDummy && userIsDeclarer && currentTurnPlayer === dummy) )
+             {
+                  if (gamePhase === 'playing' || gamePhase === 'waiting-for-lead') {
+                     canUserClickThisHandDuringPlay = true;
+                  }
+             }
+
+
+            if (!isVisible && gamePhase !== 'game-over') {
+                 const cardCount = hands[player]?.filter(c => !c.played).length ?? 0;
+                 if (cardCount > 0) {
+                     handDiv.innerHTML = `<div class="text-gray-500 text-sm italic p-2">${cardCount} cards face down</div>`;
+                 } else {
+                     handDiv.innerHTML = `<div class="text-gray-500 text-sm italic p-2">Hand empty</div>`;
+                 }
+                 return;
+            }
+
+            // --- REVERTED Rendering Logic (Horizontal Cards) ---
+            const currentHand = hands[player] ?? []; // Get the hand, default to empty array if undefined
+            // Ensure hand is sorted (important for consistent display)
+            sortHand(currentHand); // Make sure hand is sorted before rendering
+
+             const unplayedCards = currentHand.filter(card => !card.played);
+
+             // Determine if player must follow suit during play phase
+            let mustFollowSuit = false;
+            let canFollowSuit = false;
+            if (canUserClickThisHandDuringPlay && leadSuit) {
+                mustFollowSuit = true;
+                canFollowSuit = unplayedCards.some(c => c.suit === leadSuit);
+            }
+
+            // Group cards by suit for display ordering (Spades, Hearts, Diamonds, Clubs)
+            const cardsBySuit = SUITS.reduce((acc, suit) => {
+                acc[suit] = currentHand.filter(card => card.suit === suit);
+                return acc;
+            }, {});
+
+             // Iterate through SUITS order for display
+             SUITS.forEach(suit => {
+                  if (cardsBySuit[suit].length > 0) {
+                      const suitGroup = document.createElement('div'); // Create a container for visual spacing if needed
+                      suitGroup.style.display = 'inline-block'; // Keep suits together
+                      suitGroup.style.marginRight = '10px'; // Space between suit groups
+
+                      cardsBySuit[suit].forEach(card => {
+                            const cardEl = document.createElement('div');
+                            cardEl.classList.add('card', getCardColorClass(card.suit));
+                            cardEl.textContent = getCardDisplay(card);
+                            cardEl.dataset.suit = card.suit;
+                            cardEl.dataset.rank = card.rank;
+
+                            if (card.played) {
+                                cardEl.classList.add('played');
+                                cardEl.classList.remove('disabled'); // Ensure played is distinct from disabled
+                                cardEl.onclick = null; // Remove click handler from played cards
+                            } else if (canUserClickThisHandDuringPlay) {
+                                // --- Apply Refined Highlighting Logic ---
+                                let isClickable = false;
+                                if (mustFollowSuit) {
+                                    if (canFollowSuit) {
+                                        // Must follow, and can: Only allow cards of the lead suit
+                                        isClickable = (card.suit === leadSuit);
+                                    } else {
+                                        // Must follow, but cannot (void): Allow any card
+                                        isClickable = true;
+                                    }
+                                } else {
+                                    // Not following suit (leading): Allow any card
+                                    isClickable = true;
+                                }
+
+                                if (isClickable) {
+                                    cardEl.onclick = () => handleCardClick(player, card);
+                                    cardEl.classList.remove('disabled'); // Ensure it's not disabled
+                                } else {
+                                    cardEl.classList.add('disabled'); // Disable if not playable this turn
+                                    cardEl.onclick = null; // Remove click handler
+                                }
+                                // --- End Refined Highlighting Logic ---
+                            } else {
+                                // Card is visible but not clickable (bidding phase, opponent's turn, game over)
+                                cardEl.classList.add('disabled');
+                                cardEl.onclick = null; // Remove click handler
+                            }
+                             suitGroup.appendChild(cardEl); // Append card to the suit group div
+                      });
+                      handDiv.appendChild(suitGroup); // Append the whole suit group
+                  }
+             });
+             // --- End REVERTED Rendering Logic ---
+
+
+            if (handDiv.innerHTML === '' && isVisible) {
+                handDiv.innerHTML = `<div class="text-gray-500 text-sm italic p-2">Hand empty</div>`;
+            }
+        }
+
+        function renderAllHands(showOpponentHands = false) {
+            renderHand('S');
+            renderHand('N'); // Renders face down initially or if not dummy/revealed
+
+            const showEW = showOpponentHands || gamePhase === 'game-over';
+            eastHandArea.classList.toggle('hidden', !showEW);
+            westHandArea.classList.toggle('hidden', !showEW);
+            if (showEW) {
+                 renderHand('E');
+                 renderHand('W');
+            }
+            updateRoleDisplays(); // Update (Declarer) / (Dummy) labels
+        }
+
+        function renderTable() {
+            tableDiv.innerHTML = `
+                 <span class="absolute top-1 left-1/2 transform -translate-x-1/2 text-xs text-gray-300 font-semibold">N</span>
+                 <span class="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-gray-300 font-semibold">S</span>
+                 <span class="absolute top-1/2 left-2 transform -translate-y-1/2 text-xs text-gray-300 font-semibold">W</span>
+                 <span class="absolute top-1/2 right-2 transform -translate-y-1/2 text-xs text-gray-300 font-semibold">E</span>
+            `; // Keep labels
+            currentTrickCards.forEach(playedCard => {
+                const cardEl = document.createElement('div');
+                cardEl.classList.add('card', 'table-card', getCardColorClass(playedCard.card.suit));
+                cardEl.textContent = getCardDisplay(playedCard.card);
+                // Simple positioning logic
+                switch (playedCard.player) {
+                    case 'N': cardEl.style.cssText = 'top: 15%; left: 50%; transform: translateX(-50%);'; break;
+                    case 'S': cardEl.style.cssText = 'bottom: 15%; left: 50%; transform: translateX(-50%);'; break;
+                    case 'E': cardEl.style.cssText = 'top: 50%; right: 18%; transform: translateY(-50%);'; break;
+                    case 'W': cardEl.style.cssText = 'top: 50%; left: 18%; transform: translateY(-50%);'; break;
+                }
+                tableDiv.appendChild(cardEl);
+            });
+        }
+
+        function updateRoleDisplays() {
+            northRoleSpan.textContent = ''; southRoleSpan.textContent = ''; eastRoleSpan.textContent = ''; westRoleSpan.textContent = '';
+            if (declarer) {
+                const declarerEl = document.getElementById(`${declarer.toLowerCase()}-role`);
+                if (declarerEl) declarerEl.textContent = '(Declarer)';
+            }
+            // Only show dummy label if dummy is known AND revealed
+            if (dummy && isDummyRevealed) {
+                 const dummyEl = document.getElementById(`${dummy.toLowerCase()}-role`);
+                 if (dummyEl) dummyEl.textContent = '(Dummy)';
+            }
+        }
+
+
+        function updateInfoDisplay() {
+            dealerDisplayEl.textContent = PLAYERS[dealerIndex];
+            let contractStr = 'Not Set';
+            if (contract && contract.level) { // Check if contract level is set
+                 contractStr = `${contract.level}${SUIT_SYMBOLS[contract.suit]}`;
+                 if (contract.redoubled) contractStr += 'XX';
+                 else if (contract.doubled) contractStr += 'X';
+            }
+            contractDisplayEl.textContent = contractStr;
+            declarerDisplayEl.textContent = declarer || 'N/A';
+            dummyDisplayEl.textContent = dummy || 'N/A'; // Show dummy even if not revealed yet
+            nsTricksEl.textContent = tricksWon.NS; ewTricksEl.textContent = tricksWon.EW;
+            trickNumberEl.textContent = (gamePhase === 'playing' || gamePhase === 'trick-end' || gamePhase === 'game-over') ? trickNumber : 0;
+            // Show leader only when play has started (including waiting for lead)
+             leadPlayerDisplayEl.textContent = (gamePhase === 'playing' || gamePhase === 'waiting-for-lead') && trickLeaderIndex !== -1 ? PLAYERS[trickLeaderIndex] : 'N/A';
+
+            // Show score at end
+            scoreInfoDiv.classList.toggle('hidden', gamePhase !== 'game-over');
+            if (gamePhase === 'game-over') {
+                 scoreDisplayEl.textContent = finalScore;
+            }
+
+             // Show HCP during bidding/dealing
+            hcpInfoDiv.classList.toggle('hidden', !(gamePhase === 'dealing' || gamePhase === 'bidding'));
+            if(gamePhase === 'dealing' || gamePhase === 'bidding') {
+                southHcpEl.textContent = calculateHCP(hands.S);
+            }
+        }
+
+        function showMessage(msg, isError = false) {
+            messageEl.textContent = msg;
+            messageEl.className = `message text-center font-semibold ${isError ? 'text-red-400' : 'text-red-300'}`;
+        }
+
+        function generateBidButtons() {
+            const existingButtons = bidControlsDiv.querySelectorAll('.bid-level-button, br');
+            existingButtons.forEach(btn => btn.remove()); // Clear old buttons
+            const bidLevels = [1, 2, 3, 4, 5, 6, 7];
+            const bidSuits = ['C', 'D', 'H', 'S', 'NT']; // Use constant for consistency
+
+            // Determine if Double/Redouble should be enabled
+            const lastBidInfo = bidHistory.length > 0 ? bidHistory[bidHistory.length - 1] : null;
+            // Find the last actual bid (not Pass, X, XX) to determine the contract level/suit
+            const lastActualBidInfo = bidHistory.slice().reverse().find(b => !['Pass', 'X', 'XX'].includes(b.bid));
+            const lastActionInfo = lastBidInfo; // Last thing done
+
+            let canDouble = false;
+            let canRedouble = false;
+            const currentPlayer = PLAYERS[currentBidderIndex]; // Current player whose turn it is
+            const myPartnership = ['N', 'S'].includes(currentPlayer) ? ['N', 'S'] : ['E', 'W'];
+            const opponentPartnership = ['N', 'S'].includes(currentPlayer) ? ['E', 'W'] : ['N', 'S'];
+
+            if (lastActualBidInfo) { // There must be a bid on the table to double/redouble
+                 const highestBidPlayer = lastActualBidInfo.player;
+
+                 // Can Double IF:
+                 // 1. The last actual bid was made by an opponent.
+                 // 2. The last action was NOT a Double by my side.
+                 // 3. The last action was NOT a Redouble by anyone.
+                 if (opponentPartnership.includes(highestBidPlayer) && // Opponent holds the contract bid
+                     (!lastActionInfo || lastActionInfo.bid !== 'XX') && // Not already redoubled
+                     (!lastActionInfo || lastActionInfo.bid !== 'X' || !myPartnership.includes(lastActionInfo.player)) // Not just doubled by my side
+                     ) {
+                         canDouble = true;
+                 }
+
+                 // Can Redouble IF:
+                 // 1. The last actual bid was made by my partnership.
+                 // 2. The last action WAS a Double by an opponent.
+                 if (myPartnership.includes(highestBidPlayer) && // Our side holds the contract bid
+                     lastActionInfo && lastActionInfo.bid === 'X' && opponentPartnership.includes(lastActionInfo.player) // Opponent just doubled
+                     ) {
+                         canRedouble = true;
+                 }
+            }
+
+            doubleButton.disabled = !canDouble;
+            redoubleButton.disabled = !canRedouble;
+             // Pass button should always be enabled during bidding
+             passButton.disabled = false;
+
+            // Generate level buttons
+            const targetElementForButtons = suggestBidButton; // Insert before the suggestion button
+            bidLevels.forEach(level => {
+                 bidSuits.forEach(suit => {
+                     const bidValue = `${level}${suit}`;
+                     const button = document.createElement('button');
+                     button.textContent = bidValue;
+                     button.classList.add('bid-button', 'bid-level-button');
+                     // Check if this bid is higher than the current highest bid
+                     const currentHighestLevel = lastActualBidInfo ? parseInt(lastActualBidInfo.bid.charAt(0)) : 0;
+                     const currentHighestSuit = lastActualBidInfo ? (lastActualBidInfo.bid.slice(-1) === 'T' ? 'NT' : lastActualBidInfo.bid.slice(-1)) : null;
+
+                     if (isBidHigher(level, suit, currentHighestLevel, currentHighestSuit)) {
+                         button.onclick = () => handleBid(bidValue);
+                     } else {
+                         button.disabled = true;
+                     }
+                     bidControlsDiv.insertBefore(button, targetElementForButtons);
+                 });
+                 // Add a line break after each level, before the suggestion button
+                  bidControlsDiv.insertBefore(document.createElement('br'), targetElementForButtons);
+            });
+        }
+
+        function isBidHigher(level1, suit1, level2, suit2) {
+             if (!level2) return true; // No previous bid, any bid is higher
+             if (level1 > level2) return true;
+             if (level1 < level2) return false;
+             // Levels are equal, compare suits based on BID_SUIT_ORDER
+             return BID_SUIT_ORDER.indexOf(suit1) > BID_SUIT_ORDER.indexOf(suit2);
+        }
+
+        function renderBidHistory() {
+            dealerHistoryLabel.textContent = `Bidding History (Dealer: ${PLAYERS[dealerIndex]})`;
+            bidHistoryDiv.innerHTML = '';
+            bidHistory.forEach(bidInfo => {
+                const entry = document.createElement('div');
+                entry.textContent = bidInfo.bid;
+                entry.title = `Bid by ${bidInfo.player}`;
+                entry.classList.add('bid-history-entry');
+                if (bidInfo.bid === 'Pass') { entry.classList.add('pass'); }
+                else if (bidInfo.bid === 'X') { entry.classList.add('dbl'); }
+                else if (bidInfo.bid === 'XX') { entry.classList.add('rdbl'); }
+                else {
+                    const suit = bidInfo.bid.includes('NT') ? 'NT' : bidInfo.bid.slice(-1);
+                    if (SUIT_NAMES[suit]) { entry.classList.add(suit); }
+                }
+                bidHistoryDiv.appendChild(entry);
+            });
+        }
+
+        // --- Bidding Logic ---
+        function startBidding() {
+            gamePhase = 'bidding';
+            currentBidderIndex = dealerIndex; // Bidding starts with the dealer
+            bidHistory = [];
+            highestBid = null;
+            passesInARow = 0;
+            lastAction = null;
+            contract = null; // Clear previous contract
+            declarer = null;
+            dummy = null;
+            isDummyRevealed = false; // Reset dummy state
+            bidControlsDiv.classList.add('hidden'); // Hide controls initially
+            biddingAreaDiv.classList.remove('hidden');
+            bidSuggestionArea.classList.add('hidden');
+            playSuggestionArea.classList.add('hidden'); // Hide play suggestions
+            renderBidHistory();
+            showMessage("Bidding starts with " + PLAYERS[dealerIndex]);
+            setTimeout(nextBidder, 500); // Start the bidding sequence
+        }
+
+        function handleBid(bid) { // bid can be '1C', 'Pass', 'X', 'XX'
+            if (gamePhase !== 'bidding' || PLAYERS[currentBidderIndex] !== 'S') return; // Only player 'S' clicks
+
+            recordBid(PLAYERS[currentBidderIndex], bid);
+            bidSuggestionArea.classList.add('hidden'); // Hide suggestion after bid
+
+            processBidAction(bid, PLAYERS[currentBidderIndex]); // Process the bid logic
+        }
+
+        function aiMakeBid(player) {
+            if (gamePhase !== 'bidding') return;
+
+            // --- Basic AI Bid Logic ---
+            // Very simple: Pass for now, unless a suggestion exists
+            // TODO: Implement smarter AI bidding
+            let chosenBid = 'Pass'; // Default to Pass
+
+            // Simple check: Can we double? (Opponent bid, not already doubled/redoubled)
+            const lastActualBidInfo = bidHistory.slice().reverse().find(b => !['Pass', 'X', 'XX'].includes(b.bid));
+            const lastActionInfo = bidHistory.length > 0 ? bidHistory[bidHistory.length-1] : null;
+            const myPartnership = ['N', 'S'].includes(player) ? ['N', 'S'] : ['E', 'W'];
+            const opponentPartnership = ['N', 'S'].includes(player) ? ['E', 'W'] : ['N', 'S'];
+
+            let canDouble = false;
+             if (lastActualBidInfo && opponentPartnership.includes(lastActualBidInfo.player) &&
+                (!lastActionInfo || lastActionInfo.bid !== 'XX') &&
+                (!lastActionInfo || lastActionInfo.bid !== 'X' || !myPartnership.includes(lastActionInfo.player))) {
+                 canDouble = true;
+             }
+             // Simple heuristic: Double if points are high-ish (e.g., 10+ HCP) - VERY basic
+             if (canDouble && calculateHCP(hands[player]) >= 10) {
+                 // chosenBid = 'X'; // Let's stick to pass for simplicity for now
+             }
+
+            // More complex bidding AI needed here... for now, just pass.
+
+            // Ensure the AI *can* legally pass (it always can)
+            console.log(`AI (${player}) decided to bid: ${chosenBid}`);
+            recordBid(player, chosenBid);
+            processBidAction(chosenBid, player); // Process the AI's bid logic
+        }
+
+        function processBidAction(bid, player) {
+             // This function is called by both human and AI bids
+
+             if (bid === 'Pass') {
+                 passesInARow++;
+             } else if (bid === 'X') {
+                 passesInARow = 0;
+                 // Mark the current highest bid as doubled
+                 if (highestBid) {
+                     highestBid.doubled = true;
+                     highestBid.redoubled = false; // Cannot be redoubled if just doubled
+                 } else { console.error("Cannot double, no highest bid!"); }
+             } else if (bid === 'XX') {
+                 passesInARow = 0;
+                 // Mark the current highest bid as redoubled
+                 if (highestBid && highestBid.doubled) { // Can only redouble a doubled bid
+                     highestBid.redoubled = true;
+                 } else { console.error("Cannot redouble, bid not doubled or no highest bid!"); }
+             } else { // It's a level+suit bid
+                 passesInARow = 0;
+                 const level = parseInt(bid.charAt(0));
+                 const suit = bid.includes('NT') ? 'NT' : bid.slice(-1);
+                 highestBid = { level, suit, player, indexInHistory: bidHistory.length - 1, doubled: false, redoubled: false }; // Store who made the highest bid and reset double state
+             }
+             lastAction = { player, bid }; // Track last action
+
+             renderBidHistory();
+             if (!checkBiddingEnd()) { // If bidding hasn't ended
+                 currentBidderIndex = (currentBidderIndex + 1) % 4; // Move to next bidder
+                 nextBidder(); // Trigger next turn
+             }
+        }
+
+
+        function recordBid(player, bid) {
+            bidHistory.push({ player, bid });
+            console.log(`${player} bids ${bid}`);
+        }
+
+        function nextBidder() {
+            if (gamePhase !== 'bidding') return;
+
+            const currentPlayer = PLAYERS[currentBidderIndex];
+            updateInfoDisplay(); // Refresh display
+
+            if (currentPlayer === 'S') {
+                 showMessage("Your turn to bid.");
+                 generateBidButtons(); // Regenerate buttons with correct enables/disables
+                 bidControlsDiv.classList.remove('hidden');
+                 suggestBidButton.disabled = false; // Re-enable suggestion button
+            } else {
+                 showMessage(`${currentPlayer}'s turn to bid...`);
+                 bidControlsDiv.classList.add('hidden'); // Hide controls for AI
+                 setTimeout(() => aiMakeBid(currentPlayer), 1200); // AI makes bid after delay
+            }
+        }
+
+        function checkBiddingEnd() {
+            // Rule: Bidding ends when there are three consecutive passes, unless all four players pass initially.
+            // OR Bidding ends if the first four bids are passes ("passed out").
+
+            const historyLen = bidHistory.length;
+
+            // Check for 4 initial passes
+            if (historyLen === 4 && passesInARow === 4) {
+                showMessage("Board passed out. Redealing...");
+                endBidding(true); // Pass out = true
+                return true;
+            }
+
+            // Check for 3 consecutive passes after at least one non-pass bid has occurred
+            if (historyLen >= 4 && passesInARow >= 3) {
+                // Ensure the 3 passes aren't the *first* 3 bids (they must follow a non-pass action at some point)
+                if (bidHistory.slice(0, historyLen - 3).some(b => b.bid !== 'Pass')) {
+                     showMessage("Bidding ended.");
+                     endBidding(false); // Normal end = false
+                     return true;
+                }
+            }
+
+            // Check if the very first bid was Pass, followed by 3 more passes
+            if (historyLen > 0 && bidHistory[0].bid === 'Pass' && passesInARow >= 3 && historyLen >= 4) {
+                 // This case might be covered above, but double check.
+                 // It requires 4 passes total if the first one was pass.
+                 if (bidHistory.slice(historyLen - 3).every(b => b.bid === 'Pass')) {
+                     showMessage("Bidding ended.");
+                     endBidding(false); // Normal end
+                     return true;
+                 }
+            }
+
+
+            return false; // Bidding continues
+        }
+
+        function endBidding(isPassedOut) {
+            gamePhase = 'bidding-ended';
+            biddingAreaDiv.classList.add('hidden'); // Hide bidding controls
+            bidControlsDiv.classList.add('hidden');
+
+            if (isPassedOut || !highestBid) {
+                showMessage("Board passed out. Starting new hand.", false);
+                // No contract, no play phase
+                 setTimeout(initGame, 2500); // Restart after a delay
+            } else {
+                determineContractAndDeclarer(); // Figure out who plays the hand
+                if (contract) {
+                    updateInfoDisplay(); // Show the final contract etc.
+                    setTimeout(startPlayPhase, 1500); // Move to the play phase
+                } else {
+                     // Should not happen if highestBid exists, but handle defensively
+                     console.error("Bidding ended, highest bid exists, but contract not set.");
+                     showMessage("Error determining contract. Restarting.", true);
+                     setTimeout(initGame, 2500);
+                }
+            }
+        }
+
+        function determineContractAndDeclarer() {
+             if (!highestBid) return; // Should have been caught by endBidding
+
+             contract = { ...highestBid }; // Copy level, suit, double status
+             delete contract.indexInHistory; // Don't need this anymore
+
+             const winningPartnership = ['N', 'S'].includes(contract.player) ? ['N', 'S'] : ['E', 'W'];
+             const trumpSuit = contract.suit;
+
+             // Find the first player in the winning partnership who bid the trump suit
+             declarer = null;
+             for (let i = 0; i < bidHistory.length; i++) {
+                 const bidInfo = bidHistory[i];
+                 const bidSuit = bidInfo.bid.includes('NT') ? 'NT' : (bidInfo.bid.match(/[SHDC]$/) ? bidInfo.bid.slice(-1) : null);
+
+                 if (winningPartnership.includes(bidInfo.player) && bidSuit === trumpSuit) {
+                     declarer = bidInfo.player;
+                     break; // Found the first instance
+                 }
+             }
+
+             // If no one bid the suit (e.g., partner bid NT, then this partner bid NT), the first bidder of the partnership wins
+             if (!declarer) {
+                  for (let i = 0; i < bidHistory.length; i++) {
+                      const bidInfo = bidHistory[i];
+                       if (winningPartnership.includes(bidInfo.player) && !['Pass', 'X', 'XX'].includes(bidInfo.bid) ) {
+                            declarer = bidInfo.player;
+                            break;
+                       }
+                  }
+             }
+
+
+             if (declarer) {
+                 dummy = PARTNERS[declarer];
+                 console.log(`Contract: ${contract.level}${contract.suit} by ${declarer}. Dummy: ${dummy}. Doubled: ${contract.doubled}, Redoubled: ${contract.redoubled}`);
+             } else {
+                 console.error("Could not determine declarer!");
+                 // This indicates a logic error somewhere earlier.
+                 // Fallback: Assign the highest bidder as declarer? Risky.
+                 declarer = contract.player; // Fallback, might be wrong
+                 dummy = PARTNERS[declarer];
+                 console.warn(`Fallback: Assigning ${declarer} as declarer, ${dummy} as dummy.`);
+             }
+        }
+
+
+        // --- Play Logic ---
+        function startPlayPhase() {
+            if (!declarer) {
+                console.error("Cannot start play phase without a declarer.");
+                showMessage("Error: Declarer not set. Cannot start play.", true);
+                return;
+            }
+            gamePhase = 'waiting-for-lead';
+            trickNumber = 1; // Start the first trick
+            tricksWon = { NS: 0, EW: 0 };
+            currentTrickCards = [];
+            isDummyRevealed = false; // Dummy hand is hidden initially
+
+            // Determine opening leader: Player to the LEFT of the declarer
+            const declarerActualIndex = PLAYERS.indexOf(declarer);
+            trickLeaderIndex = (declarerActualIndex + 1) % 4; // Player to the left leads
+            currentPlayerIndex = trickLeaderIndex;
+
+            console.log(`Play starts. Opening lead by ${PLAYERS[trickLeaderIndex]}.`);
+            showMessage(`Waiting for opening lead from ${PLAYERS[trickLeaderIndex]}...`);
+
+            updateInfoDisplay();
+            renderAllHands(); // Render hands (dummy will be face down)
+
+            // If AI leads, trigger AI play
+            if (PLAYERS[currentPlayerIndex] !== 'S') {
+                 setTimeout(() => aiChooseCardToPlay(PLAYERS[currentPlayerIndex]), 1500);
+            } else {
+                 // If Player 'S' leads, enable their hand for clicking
+                 renderHand('S'); // Re-render S hand to ensure clickability
+                 playSuggestionArea.classList.remove('hidden'); // Show play suggestion button
+            }
+        }
+
+         function handleCardClick(player, card) {
+             // Player is the owner of the hand ('S' or 'N' if dummy)
+             // Card is the card object clicked
+             const currentTurnPlayer = PLAYERS[currentPlayerIndex];
+
+             console.log(`Card clicked: ${getCardDisplay(card)} from ${player}'s hand. Current turn: ${currentTurnPlayer}`);
+
+             // --- Validation ---
+             // 1. Is it the correct phase?
+             if (gamePhase !== 'playing' && gamePhase !== 'waiting-for-lead') {
+                 console.warn("Card clicked outside of playing phase."); return;
+             }
+             // 2. Is it this player's turn (or declarer playing dummy)?
+             let isCorrectPlayerTurn = (currentTurnPlayer === player); // Simple case: S playing S hand
+             if (player === dummy && declarer === 'S' && currentTurnPlayer === dummy) {
+                 isCorrectPlayerTurn = true; // Case: S (declarer) playing N (dummy) hand when it's N's turn
+             }
+              if (!isCorrectPlayerTurn) {
+                  showMessage(`Not ${currentTurnPlayer}'s turn to play.`, true);
+                  console.warn(`Tried to play ${player}'s card on ${currentTurnPlayer}'s turn.`); return;
+              }
+
+             // 3. Is the card playable (follows suit rules)?
+             if (!isCardPlayable(player, card)) {
+                 showMessage("Must follow suit if possible!", true);
+                 console.warn(`Illegal card play attempt: ${getCardDisplay(card)}. Lead suit: ${leadSuit}`); return;
+             }
+
+             // --- Play the card ---
+             playCard(player, card);
+         }
+
+        function isCardPlayable(player, card) {
+             if (card.played) return false; // Already played
+
+             const hand = hands[player];
+             const unplayedHand = hand.filter(c => !c.played);
+
+             // If this is the first card of the trick (lead), any card is playable
+             if (currentTrickCards.length === 0 || !leadSuit) {
+                 return true;
+             }
+
+             // Otherwise, must follow lead suit if possible
+             const hasLeadSuit = unplayedHand.some(c => c.suit === leadSuit);
+             if (hasLeadSuit) {
+                 // Must play a card of the lead suit
+                 return card.suit === leadSuit;
+             } else {
+                 // Cannot follow suit, any card is playable (trump or discard)
+                 return true;
+             }
+        }
+
+         function aiChooseCardToPlay(player) {
+             if (gamePhase !== 'playing' && gamePhase !== 'waiting-for-lead') return;
+             if (PLAYERS[currentPlayerIndex] !== player) {
+                 console.error(`AI ${player} tried to play, but it's ${PLAYERS[currentPlayerIndex]}'s turn.`);
+                 return;
+             }
+
+             const hand = hands[player];
+             const unplayedHand = hand.filter(c => !c.played);
+             if (unplayedHand.length === 0) {
+                 console.error(`AI ${player} has no cards left to play!`);
+                 // This might happen if logic is off, try to recover?
+                 advancePlayTurn();
+                 return;
+             }
+
+
+             let playableCards = unplayedHand.filter(card => isCardPlayable(player, card));
+
+             if (playableCards.length === 0) {
+                 // This should NOT happen if isCardPlayable is correct. It means no card is legal.
+                 console.error(`FATAL: AI ${player} has no playable cards! Hand:`, unplayedHand, `Lead suit: ${leadSuit}`);
+                 // As a desperate fallback, play the first card in hand?
+                 playableCards = unplayedHand; // Play anything to prevent getting stuck
+                 if (playableCards.length === 0) return; // Truly stuck
+             }
+
+             // --- Basic AI Card Selection ---
+             // TODO: Implement better AI strategy (e.g., play high, conserve winners, trumping strategy)
+
+             // Simple Strategy:
+             // 1. If leading, play a reasonable card (e.g., highest of longest suit? For now, random)
+             // 2. If following suit, play lowest card that follows suit? Or highest if trying to win? (Play low for now)
+             // 3. If cannot follow suit:
+             //    a. If partner is winning, discard lowest card.
+             //    b. If opponents are winning and have trump, play trump if possible (highest?).
+             //    c. Otherwise, discard lowest card.
+
+             // For now: Choose a random *playable* card.
+             const randomIndex = Math.floor(Math.random() * playableCards.length);
+             const cardToPlay = playableCards[randomIndex];
+
+             console.log(`AI (${player}) chose to play: ${getCardDisplay(cardToPlay)}`);
+             setTimeout(() => playCard(player, cardToPlay), 500); // Add delay for AI play visibility
+         }
+
+
+        function playCard(player, card) {
+             console.log(`${player} plays ${getCardDisplay(card)}`);
+             playSuggestionSpan.textContent = ''; // Clear suggestion
+
+             // Mark card as played in the hand
+             const handCard = hands[player].find(c => c.suit === card.suit && c.rank === card.rank && !c.played);
+             if (!handCard) {
+                 console.error(`Card ${getCardDisplay(card)} not found or already played in ${player}'s hand!`);
+                 return; // Avoid errors
+             }
+             handCard.played = true;
+
+             // If this is the first card played in the trick, set leadSuit and potentially reveal dummy
+             if (currentTrickCards.length === 0) {
+                 leadSuit = card.suit;
+                 if (gamePhase === 'waiting-for-lead') {
+                     gamePhase = 'playing'; // Play has officially started
+                     isDummyRevealed = true; // Reveal dummy AFTER opening lead
+                     console.log("Dummy hand revealed.");
+                     renderHand(dummy); // Re-render dummy hand now visible
+                     updateRoleDisplays(); // Update dummy label visibility
+                 }
+             }
+
+             currentTrickCards.push({ player, card });
+
+             renderTable(); // Update table display
+             renderHand(player); // Re-render the hand the card came from
+
+             // Check if trick is complete (4 cards played)
+             if (currentTrickCards.length === 4) {
+                 gamePhase = 'trick-end';
+                 setTimeout(endTrick, 1200); // Pause before calculating winner and clearing table
+             } else {
+                 // Move to the next player
+                 advancePlayTurn();
+             }
+        }
+
+        function advancePlayTurn() {
+            currentPlayerIndex = (currentPlayerIndex + 1) % 4;
+            const nextPlayer = PLAYERS[currentPlayerIndex];
+            showMessage(`${nextPlayer}'s turn to play...`);
+            updateInfoDisplay(); // Update info like leader if needed? (No, leader stays same)
+
+             // Enable controls or trigger AI for the next player
+             playSuggestionArea.classList.toggle('hidden', nextPlayer !== 'S'); // Only show suggestion for user
+
+            if (nextPlayer !== 'S') {
+                // Check if AI needs to play for Dummy (controlled by 'S')
+                if (nextPlayer === dummy && declarer === 'S') {
+                    // It's dummy's turn, but S controls it. Enable dummy hand for clicking.
+                    showMessage(`Your turn to play from Dummy (${dummy}).`);
+                    renderHand(dummy); // Re-render dummy hand to ensure clickability
+                    playSuggestionArea.classList.remove('hidden'); // Show suggestion button for playing dummy
+                } else {
+                    // It's a regular AI opponent's turn
+                    renderHand(nextPlayer); // Ensure AI hand updates (though usually hidden)
+                    setTimeout(() => aiChooseCardToPlay(nextPlayer), 1300);
+                }
+            } else {
+                // It's player S's turn (playing own hand)
+                renderHand('S'); // Re-render S hand to ensure clickability
+            }
+        }
+
+
+        function determineTrickWinner() {
+             if (currentTrickCards.length !== 4) return null;
+
+             const trumpSuit = contract?.suit !== 'NT' ? contract.suit : null;
+             let winningCardInfo = currentTrickCards[0]; // Assume leader wins initially
+
+             // Find highest trump card played, if any
+             const trumpsPlayed = currentTrickCards.filter(p => p.card.suit === trumpSuit);
+             if (trumpsPlayed.length > 0) {
+                 winningCardInfo = trumpsPlayed[0];
+                 for (let i = 1; i < trumpsPlayed.length; i++) {
+                     if (getRankValue(trumpsPlayed[i].card.rank) > getRankValue(winningCardInfo.card.rank)) {
+                         winningCardInfo = trumpsPlayed[i];
+                     }
+                 }
+             } else {
+                 // No trumps played, find highest card of the lead suit
+                 const leadSuitCards = currentTrickCards.filter(p => p.card.suit === leadSuit);
+                 // The first card is already the baseline winningCardInfo of the lead suit.
+                 for (let i = 1; i < leadSuitCards.length; i++) {
+                      if (getRankValue(leadSuitCards[i].card.rank) > getRankValue(winningCardInfo.card.rank)) {
+                          winningCardInfo = leadSuitCards[i];
+                      }
+                 }
+             }
+             return winningCardInfo; // Returns { player: 'N', card: { suit: 'S', rank: 'A' } }
+        }
+
+        function endTrick() {
+            const winnerInfo = determineTrickWinner();
+            if (!winnerInfo) {
+                console.error("Could not determine trick winner."); return; // Should not happen
+            }
+
+            const winningPlayer = winnerInfo.player;
+            console.log(`Trick ${trickNumber} won by ${winningPlayer} with ${getCardDisplay(winnerInfo.card)}`);
+            showMessage(`Trick ${trickNumber} won by ${winningPlayer}.`);
+
+            // Award trick to the winning partnership
+            if (winningPlayer === 'N' || winningPlayer === 'S') {
+                 tricksWon.NS++;
+            } else {
+                 tricksWon.EW++;
+            }
+
+            // Prepare for next trick
+            currentTrickCards = [];
+            leadSuit = null;
+            trickLeaderIndex = PLAYERS.indexOf(winningPlayer); // Winner leads next trick
+            currentPlayerIndex = trickLeaderIndex;
+
+
+            trickNumber++;
+            updateInfoDisplay(); // Update tricks won, trick number
+            renderTable(); // Clear the table visually
+            // Re-render hands only if needed (e.g., show card counts update, but not essential here)
+            // renderAllHands();
+
+
+            if (trickNumber > 13) {
+                 // Game Over
+                 gamePhase = 'game-over';
+                 endGame();
+            } else {
+                 // Start next trick
+                 gamePhase = 'playing'; // Back to playing state for the new trick lead
+                 const leader = PLAYERS[trickLeaderIndex];
+                 showMessage(`${leader}'s turn to lead trick ${trickNumber}...`);
+                 updateInfoDisplay(); // Update lead player display
+
+                  playSuggestionArea.classList.toggle('hidden', leader !== 'S'); // Only show suggestion for user lead
+
+                 if (leader !== 'S') {
+                     // Check if AI needs to play for Dummy lead (controlled by 'S')
+                     if (leader === dummy && declarer === 'S') {
+                         showMessage(`Your turn to lead from Dummy (${dummy}).`);
+                         renderHand(dummy); // Make dummy clickable for lead
+                         playSuggestionArea.classList.remove('hidden'); // Show suggestion button
+                     } else {
+                         // AI leads normally
+                         renderHand(leader);
+                         setTimeout(() => aiChooseCardToPlay(leader), 1300);
+                     }
+                 } else {
+                     // Player S leads
+                     renderHand('S'); // Make S hand clickable for lead
+                 }
+            }
+        }
+
+        // --- Scoring Logic ---
+         function calculateScore() {
+             if (!contract || !declarer) return 0; // No contract, no score
+
+             const contractLevel = contract.level;
+             const contractSuit = contract.suit;
+             const isDoubled = contract.doubled;
+             const isRedoubled = contract.redoubled;
+             const declarerPartnership = ['N', 'S'].includes(declarer) ? 'NS' : 'EW';
+             const tricksMadeByDeclarer = tricksWon[declarerPartnership];
+             const tricksNeeded = 6 + contractLevel;
+             const overtricks = Math.max(0, tricksMadeByDeclarer - tricksNeeded);
+             const undertricks = Math.max(0, tricksNeeded - tricksMadeByDeclarer);
+
+             let score = 0;
+             let pointsForTricks = 0;
+             let bonus = 0;
+
+             if (undertricks > 0) {
+                 // Contract Failed (Negative Score for Declarer's Side)
+                 if (isRedoubled) {
+                     score -= PENALTY_UNDERTRICK_NV_RDBL.first +
+                              PENALTY_UNDERTRICK_NV_RDBL.secondThird * Math.min(2, undertricks - 1) +
+                              PENALTY_UNDERTRICK_NV_RDBL.subsequent * Math.max(0, undertricks - 3);
+                 } else if (isDoubled) {
+                     score -= PENALTY_UNDERTRICK_NV_DBL.first +
+                              PENALTY_UNDERTRICK_NV_DBL.secondThird * Math.min(2, undertricks - 1) +
+                              PENALTY_UNDERTRICK_NV_DBL.subsequent * Math.max(0, undertricks - 3);
+                 } else {
+                     score -= undertricks * PENALTY_UNDERTRICK_NV;
+                 }
+                 console.log(`Contract failed by ${undertricks} trick(s). Score: ${score}`);
+
+             } else {
+                 // Contract Made
+                 // 1. Score for contracted tricks
+                 if (contractSuit === 'NT') {
+                     pointsForTricks += SCORE_PER_TRICK.NT.first;
+                     pointsForTricks += (contractLevel - 1) * SCORE_PER_TRICK.NT.others;
+                 } else {
+                     pointsForTricks += contractLevel * SCORE_PER_TRICK[contractSuit];
+                 }
+
+                 if (isDoubled) pointsForTricks *= 2;
+                 if (isRedoubled) pointsForTricks *= 4; // Applied after doubling
+
+                 score += pointsForTricks;
+
+                 // 2. Score for overtricks
+                 let overtrickPoints = 0;
+                 if (overtricks > 0) {
+                     if (isRedoubled) {
+                         overtrickPoints = overtricks * 200; // Simplified NV RDBL overtrick = 200
+                     } else if (isDoubled) {
+                         overtrickPoints = overtricks * 100; // Simplified NV DBL overtrick = 100
+                     } else { // Undoubled
+                         if (contractSuit === 'H' || contractSuit === 'S' || contractSuit === 'NT') {
+                             overtrickPoints = overtricks * 30; // Major/NT overtrick
+                         } else {
+                             overtrickPoints = overtricks * 20; // Minor overtrick
+                         }
+                     }
+                     score += overtrickPoints;
+                 }
+
+
+                 // 3. Bonus for making contract
+                 if (isDoubled) bonus += BONUS_CONTRACT_MADE_NV.dbl;
+                 if (isRedoubled) bonus += BONUS_CONTRACT_MADE_NV.rdbl;
+
+
+                 // 4. Bonus for Game/Part-score/Slam
+                 if (pointsForTricks >= 100) { // Game bonus
+                     bonus += BONUS_GAME_NV;
+                     if (contractLevel === 6 && tricksMadeByDeclarer >= 12) { // Small Slam
+                         bonus += BONUS_SMALL_SLAM_NV;
+                     } else if (contractLevel === 7 && tricksMadeByDeclarer >= 13) { // Grand Slam
+                         bonus += BONUS_GRAND_SLAM_NV;
+                     }
+                 } else { // Part-score bonus
+                     bonus += BONUS_PART_SCORE_NV;
+                      // Check for slam bonus in part-score contracts (less common but possible)
+                      if (contractLevel === 6 && tricksMadeByDeclarer >= 12) {
+                          bonus += BONUS_SMALL_SLAM_NV;
+                      } else if (contractLevel === 7 && tricksMadeByDeclarer >= 13) {
+                          bonus += BONUS_GRAND_SLAM_NV;
+                      }
+                 }
+
+                 score += bonus;
+                 console.log(`Contract made. Tricks: ${pointsForTricks}, Overtricks: ${overtrickPoints}, Bonus: ${bonus}. Total Score: ${score}`);
+             }
+
+             // Return score from the perspective of the NS partnership
+             return declarerPartnership === 'NS' ? score : -score;
+        }
+
+
+        // --- Game Flow ---
+        function endGame() {
+             finalScore = calculateScore();
+             gamePhase = 'game-over'; // Ensure phase is set
+             showMessage(`Game Over! Final Score (NS): ${finalScore}`, false);
+             console.log("Game Over. Final Score (NS perspective):", finalScore);
+             updateInfoDisplay(); // Show score
+             renderAllHands(true); // Show all hands
+             restartButton.classList.remove('hidden');
+             playSuggestionArea.classList.add('hidden'); // Hide suggestion area
+        }
+
+         function initGame() {
+             console.log("--- Initializing New Game ---");
+             gamePhase = 'initializing';
+             restartButton.classList.add('hidden'); // Hide button
+             scoreInfoDiv.classList.add('hidden'); // Hide score display
+             biddingAreaDiv.classList.add('hidden'); // Hide bidding area
+             playSuggestionArea.classList.add('hidden'); // Hide play suggestions
+             eastHandArea.classList.add('hidden'); // Hide opponent hands
+             westHandArea.classList.add('hidden');
+
+             // Rotate dealer for next hand
+             dealerIndex = (dealerIndex + 1) % 4;
+             console.log("Dealer for this hand:", PLAYERS[dealerIndex]);
+
+             // Reset game state variables
+             contract = null; declarer = null; dummy = null;
+             bidHistory = []; highestBid = null; passesInARow = 0; lastAction = null;
+             currentTrickCards = []; trickLeaderIndex = -1; currentPlayerIndex = -1;
+             leadSuit = null; tricksWon = { NS: 0, EW: 0 }; trickNumber = 0;
+             finalScore = 0; isDummyRevealed = false;
+
+             showMessage("Dealing cards...");
+             gamePhase = 'dealing';
+             createDeck(); shuffleDeck(); dealCards();
+
+             updateInfoDisplay(); // Update dealer, clear contract etc.
+             renderAllHands(); // Show S hand, N face down
+             renderTable(); // Clear table
+
+             // Small delay before starting bidding
+             setTimeout(startBidding, 1000);
+         }
+
+         // --- Event Listeners ---
+         passButton.onclick = () => handleBid('Pass');
+         doubleButton.onclick = () => handleBid('X');
+         redoubleButton.onclick = () => handleBid('XX');
+         restartButton.onclick = initGame;
+
+         // Suggestion Buttons (Placeholders for functionality)
+         suggestBidButton.onclick = () => {
+            // TODO: Implement actual bid suggestion logic based on hand points, distribution, bidding history
+            const handPoints = calculateTotalPoints(hands.S);
+            let suggestion = "Pass";
+             if (handPoints >= 12 && !highestBid) suggestion = "1NT? (Basic Suggestion)"; // Very basic opener
+             else if (highestBid) suggestion = `Consider ${highestBid.level+1}C? (Basic Suggestion)`;
+            bidSuggestionSpan.textContent = suggestion;
+            bidSuggestionArea.classList.remove('hidden');
+         };
+
+         suggestPlayButton.onclick = () => {
+             // TODO: Implement actual play suggestion logic
+             const player = PLAYERS[currentPlayerIndex];
+             const hand = hands[player];
+              const unplayedHand = hand.filter(c => !c.played);
+             let playableCards = unplayedHand.filter(card => isCardPlayable(player, card));
+             let suggestion = "No suggestion available.";
+             if (playableCards.length > 0) {
+                  // Simple: suggest the first playable card
+                  suggestion = `Play ${getCardDisplay(playableCards[0])}? (Basic Suggestion)`;
+             }
+             playSuggestionSpan.textContent = suggestion;
+         };
+
+
+         // --- Initial Game Start ---
+         document.addEventListener('DOMContentLoaded', initGame);
+
+    </script>
+</body>
+</html>
