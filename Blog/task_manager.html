@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster Pro - Daily Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212; /* Dark background */
+            color: #E0E0E0; /* Light text */
+        }
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            visibility: hidden;
+            opacity: 0;
+        }
+        .modal.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-out;
+            transform: translateY(-20px) scale(0.95);
+        }
+        .modal.active .modal-content {
+            transform: translateY(0) scale(1);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-primary {
+            background-color: #1DB954; /* Spotify Green */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1ED760;
+        }
+        .btn-secondary {
+            background-color: #282828;
+            color: #E0E0E0;
+        }
+        .btn-secondary:hover {
+            background-color: #333333;
+        }
+        .nav-button.active {
+            background-color: #1DB954;
+            color: white;
+        }
+        .nav-button {
+            background-color: #282828;
+            color: #B3B3B3;
+        }
+        .nav-button:hover {
+            background-color: #333333;
+        }
+        .card {
+            background-color: #181818;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        .input-dark {
+            background-color: #282828;
+            border-color: #404040;
+            color: #E0E0E0;
+        }
+        .input-dark:focus {
+            border-color: #1DB954;
+            box-shadow: 0 0 0 0.2rem rgba(29, 185, 84, 0.25);
+        }
+        .priority-high { border-left-color: #F44336 !important; } /* Red */
+        .priority-medium { border-left-color: #FFC107 !important; } /* Amber */
+        .priority-low { border-left-color: #4CAF50 !important; } /* Green */
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #282828; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #535353; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #1DB954; }
+
+        .daily-plan-card {
+            background-color: #282828; 
+            border-left-width: 4px;
+            transition: opacity 0.3s ease, background-color 0.3s ease; /* Added transition */
+        }
+        .daily-plan-card.completed {
+            opacity: 0.6;
+            background-color: #222; /* Slightly darker when completed */
+        }
+        .daily-plan-card.completed .task-name-daily {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .manager-notification {
+            background-color: #1DB954; 
+            border-left-color: #121212; 
+            color: white;
+        }
+        .manager-notification .fa-bullhorn { color: white; }
+
+        .streak-display {
+            background-color: #282828;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #E0E0E0;
+        }
+        .streak-display .fa-fire {
+            color: #FF9800; /* Orange fire icon */
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6">
+    <div class="container mx-auto max-w-5xl">
+        <header class="text-center mb-10 fade-in">
+            <h1 class="text-4xl font-bold text-white">
+                <i class="fas fa-tasks mr-3 text-green-400"></i>TaskMaster Pro
+            </h1>
+            <p class="text-gray-400 mt-2">Your personal guide to mastering courses and projects.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div id="app" class="lg:col-span-2 bg-[#181818] rounded-xl shadow-2xl p-6 sm:p-8">
+                <nav class="mb-8">
+                    <div class="flex space-x-2 sm:space-x-4 bg-[#282828] p-1 rounded-lg shadow-md">
+                        <button id="show-courses-button" class="nav-button active flex-1 inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md focus:outline-none transition duration-300 ease-in-out">
+                            <i class="fas fa-book-open mr-2"></i> Courses
+                        </button>
+                        <button id="show-projects-button" class="nav-button flex-1 inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md focus:outline-none transition duration-300 ease-in-out">
+                            <i class="fas fa-project-diagram mr-2"></i> Projects
+                        </button>
+                    </div>
+                </nav>
+
+                <div id="courses-section" class="mb-8 fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold text-gray-200">My Courses</h2>
+                        <button id="add-course-button" class="btn-primary inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-md shadow-sm hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                            <i class="fas fa-plus-circle mr-2"></i> Add Course
+                        </button>
+                    </div>
+                    <ul id="course-list" class="space-y-4"></ul>
+                    <p id="no-courses-message" class="text-center text-gray-500 py-8 hidden">No courses yet. Add one to get started!</p>
+                </div>
+
+                <div id="projects-section" class="mb-8 hidden fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold text-gray-200">My Projects</h2>
+                        <button id="add-project-button" class="btn-primary inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-md shadow-sm hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                            <i class="fas fa-plus-circle mr-2"></i> Add Project
+                        </button>
+                    </div>
+                    <ul id="project-list" class="space-y-4"></ul>
+                    <p id="no-projects-message" class="text-center text-gray-500 py-8 hidden">No projects yet. Time to create something amazing!</p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1 space-y-8">
+                <div id="daily-plan-section" class="bg-[#181818] rounded-xl shadow-2xl p-6 sm:p-8 fade-in">
+                    <h2 class="text-2xl font-semibold text-green-400 mb-2 flex items-center">
+                        <i class="fas fa-calendar-day mr-3"></i> Today's Focus
+                    </h2>
+                    <p class="text-xs text-gray-500 mb-4">Focus on 2-3 key tasks, including long-term project contributions.</p>
+                    <ul id="daily-plan-list" class="space-y-3">
+                        </ul>
+                    <p id="no-daily-plan-message" class="text-center text-gray-500 py-6">Nothing scheduled for today. Plan your tasks or enjoy your day!</p>
+                    
+                    <div id="streak-display-container" class="mt-4">
+                        </div>
+
+                    <div class="mt-6 space-y-3">
+                        <button id="download-daily-plan-button" class="w-full btn-secondary inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-md shadow-sm hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                            <i class="fas fa-download mr-2"></i> Download Daily Plan
+                        </button>
+                        <button id="download-monthly-plan-button" class="w-full btn-secondary inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-md shadow-sm hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                            <i class="far fa-calendar-alt mr-2"></i> Download Monthly Plan
+                        </button>
+                    </div>
+                </div>
+
+                <div id="ai-recommendation" class="bg-[#181818] rounded-xl shadow-2xl p-6 sm:p-8 fade-in">
+                    <h2 class="text-2xl font-semibold text-green-400 mb-4 flex items-center">
+                        <i class="fas fa-lightbulb mr-3"></i> AI Insights
+                    </h2>
+                    <p id="ai-recommendation-text" class="text-gray-300 leading-relaxed">Loading insights...</p>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="modal" class="modal fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+            <div class="modal-content bg-[#282828] rounded-xl shadow-2xl p-6 sm:p-8 w-full max-w-lg transform transition-all">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="modal-title" class="text-2xl font-semibold text-white">Add Item</h2>
+                    <button id="close-modal-button" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+                <form id="modal-form" class="space-y-5">
+                    <input type="hidden" id="editing-id" name="editingId">
+                    <div>
+                        <label for="name" class="block text-gray-300 text-sm font-bold mb-1">Name <span class="text-red-400">*</span></label>
+                        <input type="text" id="name" name="name" class="input-dark shadow-sm appearance-none border rounded-md w-full py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label for="type" class="block text-gray-300 text-sm font-bold mb-1">Type <span class="text-red-400">*</span></label>
+                        <select id="type" name="type" class="input-dark shadow-sm appearance-none border rounded-md w-full py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="course">Course</option>
+                            <option value="project">Project</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="start-date" class="block text-gray-300 text-sm font-bold mb-1">Start Date <span class="text-red-400">*</span></label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <i class="far fa-calendar-alt text-gray-500"></i>
+                                </div>
+                                <input type="date" id="start-date" name="startDate" class="input-dark shadow-sm appearance-none border rounded-md w-full py-3 pl-10 pr-4 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="end-date" class="block text-gray-300 text-sm font-bold mb-1">End Date <span class="text-red-400">*</span></label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <i class="far fa-calendar-check text-gray-500"></i>
+                                </div>
+                                <input type="date" id="end-date" name="endDate" class="input-dark shadow-sm appearance-none border rounded-md w-full py-3 pl-10 pr-4 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="time" class="block text-gray-300 text-sm font-bold mb-1">Preferred Time (Optional)</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="far fa-clock text-gray-500"></i>
+                            </div>
+                            <input type="time" id="time" name="time" class="input-dark shadow-sm appearance-none border rounded-md w-full py-3 pl-10 pr-4 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                         <p class="text-xs text-gray-500 mt-1">Daily planner will assign specific times. This is for your general reference.</p>
+                    </div>
+                    <div id="description-group" class="hidden">
+                        <label for="description" class="block text-gray-300 text-sm font-bold mb-1">Description</label>
+                        <textarea id="description" name="description" rows="3" class="input-dark shadow-sm appearance-none border rounded-md w-full py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                    </div>
+                    <div>
+                        <label for="priority" class="block text-gray-300 text-sm font-bold mb-1">Priority <span class="text-red-400">*</span></label>
+                        <select id="priority" name="priority" class="input-dark shadow-sm appearance-none border rounded-md w-full py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="high">High</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button id="cancel-button" type="button" class="btn-secondary py-2.5 px-6 rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500 transition duration-300 ease-in-out">Cancel</button>
+                        <button id="save-button" type="submit" class="btn-primary py-2.5 px-6 rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-green-500 transition duration-300 ease-in-out">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="notification-box" class="fixed bottom-6 right-6 bg-green-500 border-l-4 border-green-700 text-white p-4 rounded-md shadow-lg hidden fade-in z-50 max-w-sm">
+            <div class="flex items-center">
+                <i id="notification-icon" class="fas fa-check-circle mr-3 text-2xl"></i>
+                <div>
+                    <strong id="notification-title" class="font-bold">Success!</strong>
+                    <span class="block sm:inline" id="notification-text">Item processed.</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="confirmation-dialog" class="modal fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-[60]">
+            <div class="modal-content bg-[#282828] rounded-xl shadow-2xl p-6 sm:p-8 w-full max-w-sm transform transition-all">
+                <h2 id="confirmation-title" class="text-xl font-semibold text-white mb-4">Confirm Action</h2>
+                <p id="confirmation-message" class="text-gray-300 mb-6">Are you sure?</p>
+                <div class="flex justify-end space-x-3">
+                    <button id="confirm-cancel-button" class="btn-secondary py-2 px-4 rounded-md font-semibold">Cancel</button>
+                    <button id="confirm-action-button" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md font-semibold">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State variables
+        let courses = [];
+        let projects = [];
+        let editingId = null; 
+        let currentView = 'courses';
+        // dailyPlan stores: { itemId, type, name, priority, ..., completed: false }
+        let dailyPlan = []; 
+        // Stores daily plan tasks with completion status for the current day
+        let storedDailyPlanTasks = { date: '', tasks: [] }; 
+        // Stores streak data
+        let streakData = { count: 0, lastCompletionDate: '' };
+
+        // DOM Elements
+        const courseListEl = document.getElementById('course-list');
+        const projectListEl = document.getElementById('project-list');
+        const addCourseButton = document.getElementById('add-course-button');
+        const addProjectButton = document.getElementById('add-project-button');
+        const showCoursesButton = document.getElementById('show-courses-button');
+        const showProjectsButton = document.getElementById('show-projects-button');
+        
+        const coursesSection = document.getElementById('courses-section');
+        const projectsSection = document.getElementById('projects-section');
+        const noCoursesMessage = document.getElementById('no-courses-message');
+        const noProjectsMessage = document.getElementById('no-projects-message');
+
+        // Daily Plan Elements
+        const dailyPlanListEl = document.getElementById('daily-plan-list');
+        const noDailyPlanMessage = document.getElementById('no-daily-plan-message');
+        const downloadDailyPlanButton = document.getElementById('download-daily-plan-button'); 
+        const downloadMonthlyPlanButton = document.getElementById('download-monthly-plan-button');
+        const streakDisplayContainer = document.getElementById('streak-display-container');
+
+
+        // Modal Elements
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalForm = document.getElementById('modal-form');
+        const nameInput = document.getElementById('name');
+        const typeInput = document.getElementById('type');
+        const startDateInput = document.getElementById('start-date');
+        const endDateInput = document.getElementById('end-date');
+        const timeInput = document.getElementById('time'); 
+        const descriptionInput = document.getElementById('description');
+        const descriptionGroup = document.getElementById('description-group');
+        const priorityInput = document.getElementById('priority');
+        const editingIdInput = document.getElementById('editing-id'); 
+        const closeModalButton = document.getElementById('close-modal-button');
+        const cancelButton = document.getElementById('cancel-button');
+        const saveButton = document.getElementById('save-button');
+
+        // Notification Elements
+        const notificationBox = document.getElementById('notification-box');
+        const notificationText = document.getElementById('notification-text');
+        const notificationTitle = document.getElementById('notification-title');
+        const notificationIcon = document.getElementById('notification-icon');
+        
+        // Confirmation Dialog Elements
+        const confirmationDialog = document.getElementById('confirmation-dialog');
+        const CconfirmationTitle = document.getElementById('confirmation-title'); 
+        const CconfirmationMessage = document.getElementById('confirmation-message'); 
+        const CconfirmCancelButton = document.getElementById('confirm-cancel-button'); 
+        const CconfirmActionButton = document.getElementById('confirm-action-button'); 
+        let CcurrentConfirmCallback = null; 
+
+        // AI Recommendation Element
+        const aiRecommendationTextEl = document.getElementById('ai-recommendation-text');
+
+
+        // --- Utility Functions ---
+        function getTodayDateString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function showNotification(message, type = 'success', title = 'Success!', isManagerAlert = false) {
+            notificationText.textContent = message;
+            notificationTitle.textContent = title;
+            
+            notificationBox.className = 'fixed bottom-6 right-6 p-4 rounded-md shadow-lg hidden fade-in z-50 max-w-sm border-l-4';
+            notificationIcon.className = 'mr-3 text-2xl'; 
+
+            if (isManagerAlert) {
+                notificationBox.classList.add('manager-notification');
+                notificationIcon.classList.add('fas', 'fa-bullhorn');
+            } else if (type === 'success') {
+                notificationBox.classList.add('bg-green-500', 'border-green-700', 'text-white');
+                notificationIcon.classList.add('fas', 'fa-check-circle');
+            } else if (type === 'error') {
+                notificationBox.classList.add('bg-red-500', 'border-red-700', 'text-white');
+                notificationIcon.classList.add('fas', 'fa-times-circle');
+            } else if (type === 'warning') {
+                notificationBox.classList.add('bg-yellow-500', 'border-yellow-700', 'text-gray-800');
+                notificationIcon.classList.add('fas', 'fa-exclamation-triangle');
+            } else if (type === 'celebrate') { // New type for celebratory messages
+                notificationBox.classList.add('bg-blue-500', 'border-blue-700', 'text-white'); // Example: blue for celebration
+                notificationIcon.classList.add('fas', 'fa-star'); // Example: star icon
+            }
+            
+            notificationBox.classList.remove('hidden');
+            setTimeout(() => {
+                notificationBox.classList.add('hidden');
+            }, 4500);
+        }
+        
+        function showConfirmationDialog(title, message, onConfirm) {
+            CconfirmationTitle.textContent = title;
+            CconfirmationMessage.textContent = message;
+            CcurrentConfirmCallback = onConfirm;
+            confirmationDialog.classList.add('active');
+            document.body.classList.add('overflow-hidden'); 
+        }
+
+        function closeConfirmationDialog() {
+            confirmationDialog.classList.remove('active');
+            document.body.classList.remove('overflow-hidden'); 
+            CcurrentConfirmCallback = null;
+        }
+
+        function openModal(itemType, title, itemData = null) {
+            modalTitle.textContent = title;
+            modalForm.reset(); 
+            editingId = null; 
+            editingIdInput.value = ''; 
+
+            nameInput.classList.remove('border-red-500');
+            startDateInput.classList.remove('border-red-500');
+            endDateInput.classList.remove('border-red-500');
+            timeInput.classList.remove('border-red-500');
+
+            typeInput.value = itemType; 
+            descriptionGroup.classList.toggle('hidden', itemType !== 'project');
+
+            if (itemData) { 
+                editingId = itemData.id; 
+                editingIdInput.value = itemData.id; 
+                nameInput.value = itemData.name;
+                startDateInput.value = itemData.startDate;
+                endDateInput.value = itemData.endDate;
+                timeInput.value = itemData.time || ''; 
+                priorityInput.value = itemData.priority;
+                if (itemType === 'project') {
+                    descriptionInput.value = itemData.description;
+                }
+            }
+            
+            modal.classList.add('active');
+            document.body.classList.add('overflow-hidden'); 
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.classList.remove('overflow-hidden'); 
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            const [year, month, day] = dateString.split('-');
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).toLocaleDateString('en-US', options);
+        }
+
+        function formatTime(timeString) {
+            if (!timeString) return 'N/A';
+            const [hours, minutes] = timeString.split(':');
+            const date = new Date(); 
+            date.setHours(parseInt(hours));
+            date.setMinutes(parseInt(minutes));
+            const options = { hour: 'numeric', minute: 'numeric', hour12: true };
+            return date.toLocaleTimeString('en-US', options);
+        }
+
+        // --- UI Rendering (Main list) ---
+        function renderAllItems() {
+            courseListEl.innerHTML = '';
+            projectListEl.innerHTML = '';
+
+            noCoursesMessage.classList.toggle('hidden', courses.length > 0);
+            courses.forEach(item => addItemToDOM(item, courseListEl));
+            
+            noProjectsMessage.classList.toggle('hidden', projects.length > 0);
+            projects.forEach(item => addItemToDOM(item, projectListEl));
+            
+            generateAndDisplayDailyPlan(); // This will also call renderDailyPlan and updateStreakDisplay
+            updateAIInsights();
+        }
+
+        function getPriorityClasses(priority) {
+            switch (priority) {
+                case 'high': return 'priority-high text-red-400';
+                case 'medium': return 'priority-medium text-yellow-400';
+                case 'low': return 'priority-low text-green-400';
+                default: return 'border-l-gray-500 text-gray-400';
+            }
+        }
+        
+        function addItemToDOM(item, listElement) {
+            const listItem = document.createElement('li');
+            const priorityClasses = getPriorityClasses(item.priority);
+            listItem.className = `card p-5 border-l-4 ${priorityClasses} flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 fade-in`;
+            listItem.dataset.id = item.id;
+
+            const itemIcon = item.type === 'course' ? 'fas fa-book-reader' : 'fas fa-code-branch';
+            const itemColor = item.type === 'course' ? 'text-blue-400' : 'text-purple-400';
+            const preferredTimeDisplay = item.time ? ` (Prefers: ${formatTime(item.time)})` : '';
+
+            listItem.innerHTML = `
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center mb-1">
+                        <i class="${itemIcon} ${itemColor} mr-3 text-xl"></i>
+                        <h4 class="text-lg font-semibold text-white truncate" title="${item.name}">${item.name}</h4>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        <i class="far fa-calendar-alt mr-1"></i> ${formatDate(item.startDate)} - ${formatDate(item.endDate)}
+                        <span class="mx-2 text-gray-600">|</span>
+                        <i class="far fa-clock mr-1"></i> ${item.time ? formatTime(item.time) : 'Any time'}
+                    </p>
+                    <p class="text-sm text-gray-400 mt-1">
+                        Priority: <span class="font-medium ${priorityClasses.split(' ')[1]}">${item.priority.charAt(0).toUpperCase() + item.priority.slice(1)}</span>
+                    </p>
+                    ${item.type === 'project' && item.description ? `<p class="text-sm text-gray-300 mt-2 break-words"><strong class="font-medium text-gray-400">Details:</strong> ${item.description}</p>` : ''}
+                </div>
+                <div class="flex space-x-2 flex-shrink-0 mt-3 sm:mt-0">
+                    <button class="edit-item-btn bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-3 rounded-md text-xs transition duration-150 ease-in-out" title="Edit">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                    <button class="delete-item-btn bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-md text-xs transition duration-150 ease-in-out" title="Delete">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                    <button class="complete-item-btn bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-md text-xs transition duration-150 ease-in-out" title="Mark as Complete (Removes from list)">
+                        <i class="fas fa-check-double"></i> </button>
+                </div>
+            `;
+
+            listItem.querySelector('.edit-item-btn').addEventListener('click', () => editItemHandler(item));
+            listItem.querySelector('.delete-item-btn').addEventListener('click', () => deleteItemHandler(item.id, item.type));
+            // The main list complete button still removes the item entirely
+            listItem.querySelector('.complete-item-btn').addEventListener('click', () => completeItemHandler(item.id, item.type)); 
+            
+            listElement.appendChild(listItem);
+        }
+
+        // --- Daily Plan Logic (IMPROVED ALGORITHM) ---
+        function generateAndDisplayDailyPlan() {
+            const todayDateStr = getTodayDateString();
+            // Load stored daily plan for today, if any
+            const loadedStoredPlan = JSON.parse(localStorage.getItem('taskmaster_dailyPlanTasks'));
+            if (loadedStoredPlan && loadedStoredPlan.date === todayDateStr) {
+                dailyPlan = loadedStoredPlan.tasks;
+            } else {
+                // Generate new plan for today
+                dailyPlan = []; // Reset daily plan
+                let allActiveItems = [...courses, ...projects].filter(item => {
+                    const itemEndDate = new Date(item.endDate); 
+                    itemEndDate.setHours(23, 59, 59, 999); 
+                    return itemEndDate >= new Date(todayDateStr) && new Date(item.startDate) <= new Date(todayDateStr);
+                });
+
+                const priorityOrder = { high: 0, medium: 1, low: 2 };
+                allActiveItems.sort((a, b) => {
+                    if (priorityOrder[a.priority] < priorityOrder[b.priority]) return -1;
+                    if (priorityOrder[a.priority] > priorityOrder[b.priority]) return 1;
+                    return new Date(a.startDate) - new Date(b.startDate);
+                });
+                
+                let selectedTasksForPlan = [];
+                let remainingActiveItemsForPlan = [...allActiveItems];
+
+                if (remainingActiveItemsForPlan.length > 0) {
+                    selectedTasksForPlan.push(remainingActiveItemsForPlan.shift()); 
+                }
+
+                if (remainingActiveItemsForPlan.length > 0 && selectedTasksForPlan.length < 3) {
+                    let varietyTask = null;
+                    if (selectedTasksForPlan.length > 0) {
+                        const firstTaskType = selectedTasksForPlan[0].type;
+                        varietyTask = remainingActiveItemsForPlan.find(task => task.type !== firstTaskType);
+                    }
+                    if (varietyTask) {
+                        selectedTasksForPlan.push(varietyTask);
+                        remainingActiveItemsForPlan = remainingActiveItemsForPlan.filter(task => task.id !== varietyTask.id);
+                    } else if (remainingActiveItemsForPlan.length > 0) {
+                        selectedTasksForPlan.push(remainingActiveItemsForPlan.shift());
+                    }
+                }
+                
+                if (remainingActiveItemsForPlan.length > 0 && selectedTasksForPlan.length < 3) {
+                    remainingActiveItemsForPlan.sort((a,b) => new Date(b.endDate) - new Date(a.endDate) || priorityOrder[a.priority] - priorityOrder[b.priority]);
+                    selectedTasksForPlan.push(remainingActiveItemsForPlan.shift());
+                }
+                
+                const tasksForTodayFocus = selectedTasksForPlan.slice(0, 3);
+                const timeSlots = ["Morning (9:00 AM)", "Mid-day (1:00 PM)", "Afternoon (4:00 PM)"];
+                
+                tasksForTodayFocus.forEach((item, index) => {
+                    if (item && index < timeSlots.length) {
+                        dailyPlan.push({
+                            itemId: item.id, // Store original item ID
+                            originalType: item.type, // Store original type to fetch details if needed
+                            name: item.name,
+                            priority: item.priority,
+                            scheduledTimeSlot: timeSlots[index], 
+                            completed: false // New tasks are not completed
+                        });
+                    }
+                });
+                // Save the newly generated plan for today
+                storedDailyPlanTasks = { date: todayDateStr, tasks: dailyPlan };
+                localStorage.setItem('taskmaster_dailyPlanTasks', JSON.stringify(storedDailyPlanTasks));
+            }
+            
+            renderDailyPlan();
+            updateStreakDisplay(); // Also update streak display when plan is generated/loaded
+        }
+
+        function renderDailyPlan() {
+            dailyPlanListEl.innerHTML = '';
+            const hasDailyPlanItems = dailyPlan.length > 0;
+            noDailyPlanMessage.classList.toggle('hidden', hasDailyPlanItems);
+            downloadDailyPlanButton.classList.toggle('hidden', !hasDailyPlanItems); 
+            downloadMonthlyPlanButton.classList.toggle('hidden', courses.length === 0 && projects.length === 0);
+
+            dailyPlan.forEach(planItem => {
+                const listItem = document.createElement('li');
+                // Use original item's priority for styling
+                const originalItem = [...courses, ...projects].find(it => it.id === planItem.itemId);
+                const priorityClasses = originalItem ? getPriorityClasses(originalItem.priority) : getPriorityClasses('medium');
+                
+                listItem.className = `daily-plan-card p-3 ${priorityClasses} rounded-md shadow flex justify-between items-center`;
+                if (planItem.completed) {
+                    listItem.classList.add('completed');
+                }
+                
+                const itemIcon = originalItem ? (originalItem.type === 'course' ? 'fas fa-book-open' : 'fas fa-project-diagram') : 'fas fa-question-circle';
+                const itemColor = originalItem ? (originalItem.type === 'course' ? 'text-blue-400' : 'text-purple-400') : 'text-gray-400';
+
+                listItem.innerHTML = `
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center">
+                            <i class="${itemIcon} ${itemColor} mr-2 text-md"></i>
+                            <span class="task-name-daily font-semibold text-white truncate" title="${planItem.name}">${planItem.name}</span>
+                        </div>
+                        <p class="text-xs text-gray-500 ml-6">${planItem.scheduledTimeSlot}</p>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-xs font-medium ${priorityClasses.split(' ')[1]} mr-3">${planItem.priority.toUpperCase()}</span>
+                        <button class="complete-daily-task-btn p-2 rounded-full hover:bg-green-600 focus:outline-none transition-colors ${planItem.completed ? 'bg-green-500 text-white' : 'bg-gray-600 hover:bg-gray-500 text-gray-300'}" data-item-id="${planItem.itemId}" title="${planItem.completed ? 'Mark as Incomplete' : 'Mark as Complete'}">
+                            <i class="fas ${planItem.completed ? 'fa-check-double' : 'fa-check'}"></i>
+                        </button>
+                    </div>
+                `;
+                listItem.querySelector('.complete-daily-task-btn').addEventListener('click', () => handleDailyTaskCompletion(planItem.itemId));
+                dailyPlanListEl.appendChild(listItem);
+            });
+        }
+        
+        function handleDailyTaskCompletion(itemIdToToggle) {
+            const taskIndex = dailyPlan.findIndex(task => task.itemId === itemIdToToggle);
+            if (taskIndex > -1) {
+                dailyPlan[taskIndex].completed = !dailyPlan[taskIndex].completed;
+                
+                // Save updated daily plan to local storage
+                storedDailyPlanTasks.tasks = dailyPlan; // Update the tasks in the stored object
+                localStorage.setItem('taskmaster_dailyPlanTasks', JSON.stringify(storedDailyPlanTasks));
+
+                renderDailyPlan(); // Re-render the list to show visual change
+                checkStreakLogic(); // Check if all tasks are done for streak
+                updateAIInsights(); // Update AI insights based on completion
+            }
+        }
+
+        function checkStreakLogic() {
+            const allDailyTasksCompleted = dailyPlan.length > 0 && dailyPlan.every(task => task.completed);
+            const todayStr = getTodayDateString();
+
+            if (allDailyTasksCompleted) {
+                if (streakData.lastCompletionDate === todayStr) {
+                    // Already counted for today, do nothing to streak.
+                } else {
+                    const yesterday = new Date(todayStr);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+                    if (streakData.lastCompletionDate === yesterdayStr) {
+                        streakData.count++;
+                        showNotification(`Awesome! ${streakData.count}-day streak! 🔥`, 'celebrate', 'Streak Extended!');
+                    } else {
+                        streakData.count = 1;
+                        showNotification("Great job completing today's focus! Streak started! 🎉", 'celebrate', 'Day Complete!');
+                    }
+                    streakData.lastCompletionDate = todayStr;
+                }
+            } else {
+                // If not all tasks are completed, but it was previously a full completion day,
+                // we don't reset the streak here. Streak only resets if a day is *missed*
+                // after a successful completion. The logic for this is handled by checking `lastCompletionDate`
+                // when a *new* full completion occurs.
+            }
+            localStorage.setItem('taskmaster_streakData', JSON.stringify(streakData));
+            updateStreakDisplay();
+        }
+
+        function updateStreakDisplay() {
+            streakDisplayContainer.innerHTML = ''; // Clear previous display
+            if (streakData.count > 0) {
+                const streakEl = document.createElement('div');
+                streakEl.className = 'streak-display fade-in';
+                streakEl.innerHTML = `<i class="fas fa-fire"></i> ${streakData.count}-Day Streak! Keep it up!`;
+                streakDisplayContainer.appendChild(streakEl);
+            } else {
+                 const noStreakEl = document.createElement('div');
+                noStreakEl.className = 'streak-display fade-in text-gray-400';
+                noStreakEl.innerHTML = `Complete all daily tasks to start a streak! 💪`;
+                streakDisplayContainer.appendChild(noStreakEl);
+            }
+        }
+
+
+        // --- Download Daily Plan Functionality (Refined Design) ---
+        function handleDownloadDailyPlan() {
+            if (dailyPlan.length === 0) {
+                showNotification("No daily plan to download.", 'warning', 'Empty Plan');
+                return;
+            }
+
+            const today = new Date();
+            const dateString = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const fileName = `TaskMaster_Pro_Daily_Plan_${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}.html`;
+
+            let planHtml = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>TaskMaster Pro - Daily Plan - ${dateString}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                    <style>
+                        body { font-family: 'Inter', Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; color: #212529; line-height: 1.6; }
+                        .page-container { max-width: 800px; margin: 20px auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.07); }
+                        .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #1DB954; }
+                        .header h1 { font-size: 28px; color: #1DB954; margin: 0 0 5px 0; font-weight: 700; }
+                        .header .date { font-size: 18px; color: #555; font-weight: 500; }
+                        .time-slot-group { margin-bottom: 25px; }
+                        .time-slot-header { font-size: 20px; font-weight: 600; color: #282828; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0; }
+                        .plan-item { background-color: #fff; border: 1px solid #e7e7e7; border-left-width: 5px; padding: 15px 20px; margin-bottom: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+                        .plan-item:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.08); }
+                        .plan-item-details { flex-grow: 1; }
+                        .task-name { font-size: 18px; font-weight: 600; color: #333; }
+                        .item-type { font-size: 14px; color: #777; margin-left: 8px; font-style: italic; }
+                        .priority-tag { font-weight: 600; padding: 5px 12px; border-radius: 16px; font-size: 13px; color: white; text-transform: uppercase; letter-spacing: 0.5px; }
+                        .priority-high { border-left-color: #F44336; } 
+                        .priority-medium { border-left-color: #FFC107; } 
+                        .priority-low { border-left-color: #4CAF50; }
+                        .tag-high { background-color: #F44336; }
+                        .tag-medium { background-color: #FFC107; color: #212529; }
+                        .tag-low { background-color: #4CAF50; }
+                        .task-completed-indicator { margin-left: 10px; font-weight: bold; color: #1DB954; }
+                        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 14px; color: #777; }
+                        @media print { body { background-color: #fff; margin: 0; padding: 0; } .page-container { box-shadow: none; margin: 0; max-width: 100%; border-radius: 0;} }
+                    </style>
+                </head>
+                <body>
+                    <div class="page-container">
+                        <div class="header">
+                            <h1>TaskMaster Pro</h1>
+                            <div class="date">Daily Plan for ${dateString}</div>
+                        </div>
+            `;
+
+            const groupedTasks = {};
+            dailyPlan.forEach(item => {
+                if (!groupedTasks[item.scheduledTimeSlot]) {
+                    groupedTasks[item.scheduledTimeSlot] = [];
+                }
+                groupedTasks[item.scheduledTimeSlot].push(item);
+            });
+
+            const timeSlotOrder = ["Morning (9:00 AM)", "Mid-day (1:00 PM)", "Afternoon (4:00 PM)"]; 
+
+            timeSlotOrder.forEach(slot => {
+                if (groupedTasks[slot] && groupedTasks[slot].length > 0) {
+                    planHtml += `<div class="time-slot-group">`;
+                    planHtml += `<h2 class="time-slot-header">${slot}</h2>`;
+                    groupedTasks[slot].forEach(item => {
+                        const originalItemDetails = [...courses, ...projects].find(it => it.id === item.itemId);
+                        const typeDisplay = originalItemDetails ? originalItemDetails.type.charAt(0).toUpperCase() + originalItemDetails.type.slice(1) : 'Task';
+                        const priorityBorderClass = `priority-${item.priority.toLowerCase()}`;
+                        const priorityTagClass = `tag-${item.priority.toLowerCase()}`;
+                        const completedIndicator = item.completed ? '<span class="task-completed-indicator">(Completed)</span>' : '';
+                        
+                        planHtml += `
+                            <div class="plan-item ${priorityBorderClass} ${item.completed ? 'opacity-70' : ''}">
+                                <div class="plan-item-details">
+                                    <span class="task-name ${item.completed ? 'line-through' : ''}">${item.name}</span>
+                                    <span class="item-type">(${typeDisplay})</span>
+                                    ${completedIndicator}
+                                </div>
+                                <span class="priority-tag ${priorityTagClass}">${item.priority.toUpperCase()}</span>
+                            </div>
+                        `;
+                    });
+                    planHtml += `</div>`;
+                }
+            });
+            
+            if (dailyPlan.length === 0) {
+                 planHtml += `<p style="text-align:center; color:#777; font-size: 16px; margin-top: 20px;">No tasks scheduled for today.</p>`;
+            }
+
+            planHtml += `
+                        <div class="footer">
+                            Generated by TaskMaster Pro &bull; Keep Focusing!
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            triggerDownload(planHtml, fileName, 'Daily plan downloaded successfully!');
+        }
+
+        // --- Download Monthly Plan Functionality ---
+        function handleDownloadMonthlyPlan() {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth(); 
+
+            const monthName = today.toLocaleDateString('en-US', { month: 'long' });
+            const fileName = `TaskMaster_Pro_Monthly_Plan_${currentYear}-${String(currentMonth + 1).padStart(2, '0')}.html`;
+
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); 
+
+            const allTasks = [...courses, ...projects];
+            if (allTasks.length === 0) {
+                showNotification("No tasks available to generate a monthly plan.", 'warning', 'No Tasks');
+                return;
+            }
+
+            let planHtml = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>TaskMaster Pro - Monthly Plan - ${monthName} ${currentYear}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                    <style>
+                        body { font-family: 'Inter', Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; }
+                        .page-container { max-width: 1100px; margin: 20px auto; background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+                        .header { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #1DB954; }
+                        .header h1 { font-size: 26px; color: #1DB954; margin: 0 0 5px 0; font-weight: 700; }
+                        .header .month-year { font-size: 20px; color: #444; font-weight: 500; }
+                        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+                        .day-header { background-color: #1DB954; color: white; text-align: center; padding: 10px 5px; font-weight: 600; border-radius: 6px 6px 0 0; font-size: 0.9em;}
+                        .day-cell { border: 1px solid #e0e0e0; background-color: #fff; min-height: 120px; padding: 8px; font-size: 0.85em; position: relative; display: flex; flex-direction: column; }
+                        .day-cell.other-month { background-color: #f9f9f9; color: #aaa; }
+                        .day-number { font-weight: 600; margin-bottom: 5px; color: #333; text-align: right; font-size: 1.1em; }
+                        .day-cell.other-month .day-number { color: #ccc; }
+                        .tasks-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; max-height: 80px; flex-grow: 1;}
+                        .tasks-list li { background-color: #e8f5e9; margin-bottom: 4px; padding: 3px 6px; border-radius: 4px; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 3px solid; cursor: default; }
+                        .task-priority-high { border-left-color: #F44336; background-color: #ffebee; color: #c62828; }
+                        .task-priority-medium { border-left-color: #FFC107; background-color: #fff8e1; color: #e65100; }
+                        .task-priority-low { border-left-color: #4CAF50; background-color: #e8f5e9; color: #2e7d32; }
+                        .task-name { font-weight: 500; }
+                        .footer { text-align: center; margin-top: 30px; padding-top: 15px; border-top: 1px solid #e0e0e0; font-size: 0.9em; color: #777; }
+                        @media print { body { background-color: #fff; } .page-container { box-shadow: none; margin: 0; max-width: 100%;} .tasks-list {max-height: none;} }
+                    </style>
+                </head>
+                <body>
+                    <div class="page-container">
+                        <div class="header">
+                            <h1>TaskMaster Pro</h1>
+                            <div class="month-year">Monthly Plan: ${monthName} ${currentYear}</div>
+                        </div>
+                        <div class="calendar-grid">
+                            ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => `<div class="day-header">${day}</div>`).join('')}
+            `;
+
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                planHtml += `<div class="day-cell other-month"></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const currentDate = new Date(currentYear, currentMonth, day);
+                currentDate.setHours(0,0,0,0); 
+
+                const tasksForThisDay = allTasks.filter(task => {
+                    const startDate = new Date(task.startDate);
+                    startDate.setHours(0,0,0,0);
+                    const endDate = new Date(task.endDate);
+                    endDate.setHours(23,59,59,999); 
+                    return startDate <= currentDate && endDate >= currentDate;
+                }).sort((a,b) => { 
+                    const priorityOrder = { high: 0, medium: 1, low: 2 };
+                    return priorityOrder[a.priority] - priorityOrder[b.priority];
+                }).slice(0,3); 
+
+                planHtml += `<div class="day-cell"><div class="day-number">${day}</div>`;
+                if (tasksForThisDay.length > 0) {
+                    planHtml += `<ul class="tasks-list">`;
+                    tasksForThisDay.forEach(task => {
+                        planHtml += `<li class="task-priority-${task.priority.toLowerCase()}" title="${task.name} (${task.type})"><span class="task-name">${task.name}</span></li>`;
+                    });
+                    planHtml += `</ul>`;
+                }
+                planHtml += `</div>`;
+            }
+
+            const totalCells = firstDayOfMonth + daysInMonth;
+            const remainingCells = (7 - (totalCells % 7)) % 7;
+            for (let i = 0; i < remainingCells; i++) {
+                planHtml += `<div class="day-cell other-month"></div>`;
+            }
+
+            planHtml += `
+                        </div> <div class="footer">
+                            Generated by TaskMaster Pro &bull; Plan Your Success!
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            triggerDownload(planHtml, fileName, 'Monthly plan downloaded successfully!');
+        }
+
+        function triggerDownload(htmlContent, fileName, successMessage){
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a); 
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showNotification(successMessage, 'success', 'Download Complete');
+        }
+
+
+        // --- Event Handlers (CRUD, Navigation) ---
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const name = nameInput.value.trim();
+            const type = typeInput.value;
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+            const time = timeInput.value; 
+            const description = descriptionInput.value.trim();
+            const priority = priorityInput.value;
+            const idToEdit = editingIdInput.value; 
+
+            let isValid = true;
+            if (!name) {
+                nameInput.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                nameInput.classList.remove('border-red-500');
+            }
+            if (!startDate) {
+                startDateInput.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                startDateInput.classList.remove('border-red-500');
+            }
+            if (!endDate) {
+                endDateInput.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                endDateInput.classList.remove('border-red-500');
+            }
+            if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                endDateInput.classList.add('border-red-500');
+                showNotification('End date cannot be before start date.', 'error', 'Date Error');
+                isValid = false;
+            }
+
+
+            if (!isValid) {
+                showNotification('Please fill all required fields correctly.', 'error', 'Validation Error');
+                return;
+            }
+
+            const itemData = {
+                id: idToEdit || Date.now().toString(), 
+                name,
+                type,
+                startDate,
+                endDate,
+                time, 
+                priority,
+                description: type === 'project' ? description : ''
+            };
+
+            if (idToEdit) { 
+                if (type === 'course') {
+                    courses = courses.map(c => c.id === idToEdit ? itemData : c);
+                } else {
+                    projects = projects.map(p => p.id === idToEdit ? itemData : p);
+                }
+                showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} updated successfully!`, 'success', 'Update Complete');
+            } else { 
+                if (type === 'course') {
+                    courses.push(itemData);
+                } else {
+                    projects.push(itemData);
+                }
+                showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} added successfully!`, 'success', 'Item Added');
+            }
+
+            saveToLocalStorage();
+            renderAllItems(); // This will regenerate daily plan
+            closeModal();
+        }
+
+        function editItemHandler(itemToEdit) {
+            const title = `Edit ${itemToEdit.type.charAt(0).toUpperCase() + itemToEdit.type.slice(1)}`;
+            openModal(itemToEdit.type, title, itemToEdit);
+        }
+
+        function deleteItemHandler(id, type) {
+            showConfirmationDialog(
+                `Delete ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+                `Are you sure you want to delete this ${type}? This action cannot be undone.`,
+                () => {
+                    if (type === 'course') {
+                        courses = courses.filter(c => c.id !== id);
+                    } else {
+                        projects = projects.filter(p => p.id !== id);
+                    }
+                    saveToLocalStorage();
+                    renderAllItems(); // This will regenerate daily plan
+                    showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted.`, 'success', 'Deleted');
+                    closeConfirmationDialog();
+                }
+            );
+        }
+
+        function completeItemHandler(id, type) { // This is for the main list, removes item
+             showConfirmationDialog(
+                `Complete ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+                `Mark this ${type} as complete? This will remove it from your active lists.`,
+                () => {
+                    if (type === 'course') {
+                        courses = courses.filter(c => c.id !== id);
+                    } else {
+                        projects = projects.filter(p => p.id !== id);
+                    }
+                    saveToLocalStorage();
+                    renderAllItems(); // This will regenerate daily plan
+                    showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} marked as complete!`, 'success', 'Completed');
+                    closeConfirmationDialog();
+                }
+            );
+        }
+
+        function switchView(view) {
+            currentView = view;
+            if (view === 'courses') {
+                coursesSection.classList.remove('hidden');
+                projectsSection.classList.add('hidden');
+                showCoursesButton.classList.add('active');
+                showProjectsButton.classList.remove('active');
+            } else {
+                coursesSection.classList.add('hidden');
+                projectsSection.classList.remove('hidden');
+                showCoursesButton.classList.remove('active');
+                showProjectsButton.classList.add('active');
+            }
+        }
+
+        // --- Local Storage ---
+        function saveToLocalStorage() {
+            localStorage.setItem('taskmaster_courses', JSON.stringify(courses));
+            localStorage.setItem('taskmaster_projects', JSON.stringify(projects));
+            // Streak data and daily plan tasks are saved in their respective functions
+        }
+
+        function loadFromLocalStorage() {
+            const storedCourses = localStorage.getItem('taskmaster_courses');
+            const storedProjects = localStorage.getItem('taskmaster_projects');
+            if (storedCourses) courses = JSON.parse(storedCourses);
+            if (storedProjects) projects = JSON.parse(storedProjects);
+
+            const loadedStreakData = JSON.parse(localStorage.getItem('taskmaster_streakData'));
+            if (loadedStreakData) {
+                streakData = loadedStreakData;
+            }
+            // Stored daily plan tasks are loaded directly in generateAndDisplayDailyPlan
+        }
+
+        // --- AI Insights ---
+        function updateAIInsights() {
+            const totalTasks = courses.length + projects.length;
+            aiRecommendationTextEl.innerHTML = ''; // Clear previous insights
+
+            if (totalTasks === 0 && dailyPlan.length === 0) {
+                aiRecommendationTextEl.innerHTML = "<p>Welcome! Add some courses or projects to get started and receive personalized insights.</p>";
+                return;
+            }
+
+            let insights = [];
+            const todayStr = getTodayDateString();
+
+            // Greeting
+            const hour = new Date().getHours();
+            let greeting = "Hello";
+            if (hour < 12) greeting = "Good morning";
+            else if (hour < 18) greeting = "Good afternoon";
+            else greeting = "Good evening";
+            insights.push(`${greeting}! Ready to tackle your tasks?`);
+
+
+            if (streakData.count > 0 && streakData.lastCompletionDate === todayStr) {
+                 insights.push(`Fantastic! You've completed today's focus and are on a <strong class="text-orange-400">${streakData.count}-day streak!</strong> 🔥 Keep the momentum!`);
+            } else if (streakData.count > 0) {
+                 insights.push(`You're on a <strong class="text-orange-400">${streakData.count}-day streak!</strong> Let's make today count too!`);
+            }
+
+
+            const completedDailyTasks = dailyPlan.filter(task => task.completed).length;
+            if (dailyPlan.length > 0 && completedDailyTasks === dailyPlan.length && streakData.lastCompletionDate !== todayStr) {
+                // This case is handled by streak logic, but good to have a specific message if streak hasn't updated yet
+                insights.push(`All daily focus tasks done! Excellent work! 🎉`);
+            } else if (dailyPlan.length > 0 && completedDailyTasks > 0 && completedDailyTasks < dailyPlan.length) {
+                insights.push(`Great progress on today's focus: <strong class="text-green-400">${completedDailyTasks}/${dailyPlan.length} tasks completed!</strong> Keep it up!`);
+            } else if (dailyPlan.length > 0 && completedDailyTasks === 0) {
+                insights.push(`Today's focus has <strong class="text-yellow-300">${dailyPlan.length} task(s)</strong>. Let's get started!`);
+            }
+
+
+            const highPriorityTasks = [...courses, ...projects].filter(t => t.priority === 'high' && new Date(t.endDate) >= new Date(todayStr) && new Date(t.startDate) <= new Date(todayStr)).length;
+            if (highPriorityTasks > 0) {
+                insights.push(`You have <strong class="text-red-400">${highPriorityTasks} active high-priority item(s)</strong>. Ensure they get attention.`);
+            }
+            
+            const upcomingDeadlines = [...courses, ...projects].filter(t => {
+                const endDate = new Date(t.endDate);
+                const diffTime = endDate - new Date(todayStr);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays >= 0 && diffDays <= 7; 
+            }).length;
+
+            if (upcomingDeadlines > 0) {
+                insights.push(`<strong class="text-yellow-300">${upcomingDeadlines} item(s) are due within the next 7 days.</strong> Plan accordingly.`);
+            }
+            
+            const longTermTasksInFocus = dailyPlan.filter(dpTask => {
+                const taskDetails = [...courses, ...projects].find(t => t.id === dpTask.itemId);
+                if (!taskDetails) return false;
+                const endDate = new Date(taskDetails.endDate);
+                const diffTime = endDate - new Date(todayStr);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays > 30;
+            }).length;
+
+            if(longTermTasksInFocus > 0){
+                insights.push(`Good to see you're chipping away at <strong class="text-blue-300">long-term goals</strong> in today's focus!`);
+            }
+
+
+            if (insights.length <= 1 && totalTasks > 0) { // If only greeting and no other specific insight
+                insights.push("Keep adding and completing tasks to make the most of TaskMaster Pro!");
+            } else if (insights.length <=1 && totalTasks === 0) {
+                 insights.push("Add your first course or project to begin your journey to mastery!");
+            }
+            
+            aiRecommendationTextEl.innerHTML = insights.map(insight => `<p class="mb-2 fade-in"><i class="fas fa-check-circle text-green-400 mr-2"></i>${insight}</p>`).join('');
+        }
+        
+        // --- Event Listeners Setup ---
+        function setupEventListeners() {
+            addCourseButton.addEventListener('click', () => openModal('course', 'Add New Course'));
+            addProjectButton.addEventListener('click', () => openModal('project', 'Add New Project'));
+            
+            showCoursesButton.addEventListener('click', () => switchView('courses'));
+            showProjectsButton.addEventListener('click', () => switchView('projects'));
+
+            modalForm.addEventListener('submit', handleFormSubmit);
+            closeModalButton.addEventListener('click', closeModal);
+            cancelButton.addEventListener('click', closeModal); 
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    if (modal.classList.contains('active')) closeModal();
+                    if (confirmationDialog.classList.contains('active')) closeConfirmationDialog();
+                }
+            });
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeModal();
+            });
+            confirmationDialog.addEventListener('click', (event) => {
+                if (event.target === confirmationDialog) closeConfirmationDialog();
+            });
+
+
+            CconfirmCancelButton.addEventListener('click', closeConfirmationDialog);
+            CconfirmActionButton.addEventListener('click', () => {
+                if (CcurrentConfirmCallback) {
+                    CcurrentConfirmCallback();
+                }
+            });
+
+            typeInput.addEventListener('change', (event) => {
+                descriptionGroup.classList.toggle('hidden', event.target.value !== 'project');
+            });
+
+            downloadDailyPlanButton.addEventListener('click', handleDownloadDailyPlan);
+            downloadMonthlyPlanButton.addEventListener('click', handleDownloadMonthlyPlan);
+        }
+
+
+        // --- Initialization ---
+        function initApp() {
+            loadFromLocalStorage(); // Load courses, projects, and streak data
+            renderAllItems(); // This will generate daily plan (which also loads its own state or creates new) and render everything
+            switchView('courses'); 
+            setupEventListeners();
+            // updateAIInsights(); // Called by renderAllItems indirectly through generateAndDisplayDailyPlan
+            // updateStreakDisplay(); // Also called by generateAndDisplayDailyPlan
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>
