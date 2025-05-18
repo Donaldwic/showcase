@@ -90,19 +90,42 @@
         ::-webkit-scrollbar-thumb:hover { background: #1DB954; }
 
         .daily-plan-card {
-            background-color: #282828; /* Slightly different background for plan items */
+            background-color: #282828; 
             border-left-width: 4px;
+            transition: opacity 0.3s ease, background-color 0.3s ease; 
+        }
+        .daily-plan-card.completed {
+            opacity: 0.6;
+            background-color: #222; 
+        }
+        .daily-plan-card.completed .task-name-daily {
+            text-decoration: line-through;
+            color: #888;
         }
         .manager-notification {
-            background-color: #1DB954; /* Spotify Green for manager notifications */
-            border-left-color: #121212; /* Darker green border */
+            background-color: #1DB954; 
+            border-left-color: #121212; 
             color: white;
         }
         .manager-notification .fa-bullhorn { color: white; }
+
+        .streak-display {
+            background-color: #282828;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #E0E0E0;
+        }
+        .streak-display .fa-fire {
+            color: #FF9800; 
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-6">
-    <div class="container mx-auto max-w-5xl">
+    <div class="container mx-auto max-w-7xl">
         <header class="text-center mb-10 fade-in">
             <h1 class="text-4xl font-bold text-white">
                 <i class="fas fa-tasks mr-3 text-green-400"></i>TaskMaster Pro
@@ -155,6 +178,10 @@
                     <ul id="daily-plan-list" class="space-y-3">
                         </ul>
                     <p id="no-daily-plan-message" class="text-center text-gray-500 py-6">Nothing scheduled for today. Plan your tasks or enjoy your day!</p>
+                    
+                    <div id="streak-display-container" class="mt-4">
+                        </div>
+
                     <div class="mt-6 space-y-3">
                         <button id="download-daily-plan-button" class="w-full btn-secondary inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-md shadow-sm hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
                             <i class="fas fa-download mr-2"></i> Download Daily Plan
@@ -275,6 +302,8 @@
         let editingId = null; 
         let currentView = 'courses';
         let dailyPlan = []; 
+        let storedDailyPlanTasks = { date: '', tasks: [] }; 
+        let streakData = { count: 0, lastCompletionDate: '' };
 
         // DOM Elements
         const courseListEl = document.getElementById('course-list');
@@ -289,13 +318,12 @@
         const noCoursesMessage = document.getElementById('no-courses-message');
         const noProjectsMessage = document.getElementById('no-projects-message');
 
-        // Daily Plan Elements
         const dailyPlanListEl = document.getElementById('daily-plan-list');
         const noDailyPlanMessage = document.getElementById('no-daily-plan-message');
         const downloadDailyPlanButton = document.getElementById('download-daily-plan-button'); 
         const downloadMonthlyPlanButton = document.getElementById('download-monthly-plan-button');
+        const streakDisplayContainer = document.getElementById('streak-display-container');
 
-        // Modal Elements
         const modal = document.getElementById('modal');
         const modalTitle = document.getElementById('modal-title');
         const modalForm = document.getElementById('modal-form');
@@ -312,13 +340,11 @@
         const cancelButton = document.getElementById('cancel-button');
         const saveButton = document.getElementById('save-button');
 
-        // Notification Elements
         const notificationBox = document.getElementById('notification-box');
         const notificationText = document.getElementById('notification-text');
         const notificationTitle = document.getElementById('notification-title');
         const notificationIcon = document.getElementById('notification-icon');
         
-        // Confirmation Dialog Elements
         const confirmationDialog = document.getElementById('confirmation-dialog');
         const CconfirmationTitle = document.getElementById('confirmation-title'); 
         const CconfirmationMessage = document.getElementById('confirmation-message'); 
@@ -326,11 +352,33 @@
         const CconfirmActionButton = document.getElementById('confirm-action-button'); 
         let CcurrentConfirmCallback = null; 
 
-        // AI Recommendation Element
         const aiRecommendationTextEl = document.getElementById('ai-recommendation-text');
+
+        // Motivational Quotes/Tips
+        const motivationalQuotes = [
+            "The secret of getting ahead is getting started. - Mark Twain",
+            "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
+            "The only way to do great work is to love what you do. - Steve Jobs",
+            "Well done is better than well said. - Benjamin Franklin",
+            "You are capable of amazing things.",
+            "Believe you can and you're halfway there. - Theodore Roosevelt",
+            "The future depends on what you do today. - Mahatma Gandhi",
+            "Act as if what you do makes a difference. It does. - William James",
+            "Success is not final, failure is not fatal: It is the courage to continue that counts. - Winston Churchill",
+            "Small progress is still progress. Keep going!"
+        ];
+        let lastQuoteIndex = -1; // To avoid showing the same quote consecutively
 
 
         // --- Utility Functions ---
+        function getTodayDateString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function showNotification(message, type = 'success', title = 'Success!', isManagerAlert = false) {
             notificationText.textContent = message;
             notificationTitle.textContent = title;
@@ -350,6 +398,9 @@
             } else if (type === 'warning') {
                 notificationBox.classList.add('bg-yellow-500', 'border-yellow-700', 'text-gray-800');
                 notificationIcon.classList.add('fas', 'fa-exclamation-triangle');
+            } else if (type === 'celebrate') { 
+                notificationBox.classList.add('bg-blue-500', 'border-blue-700', 'text-white'); 
+                notificationIcon.classList.add('fas', 'fa-star'); 
             }
             
             notificationBox.classList.remove('hidden');
@@ -436,7 +487,7 @@
             noProjectsMessage.classList.toggle('hidden', projects.length > 0);
             projects.forEach(item => addItemToDOM(item, projectListEl));
             
-            generateAndDisplayDailyPlan();
+            generateAndDisplayDailyPlan(); 
             updateAIInsights();
         }
 
@@ -457,7 +508,6 @@
 
             const itemIcon = item.type === 'course' ? 'fas fa-book-reader' : 'fas fa-code-branch';
             const itemColor = item.type === 'course' ? 'text-blue-400' : 'text-purple-400';
-            const preferredTimeDisplay = item.time ? ` (Prefers: ${formatTime(item.time)})` : '';
 
             listItem.innerHTML = `
                 <div class="flex-1 min-w-0">
@@ -482,129 +532,219 @@
                     <button class="delete-item-btn bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-md text-xs transition duration-150 ease-in-out" title="Delete">
                         <i class="fas fa-trash-alt"></i>
                     </button>
-                    <button class="complete-item-btn bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-md text-xs transition duration-150 ease-in-out" title="Mark as Complete">
-                        <i class="fas fa-check-circle"></i>
-                    </button>
+                    <button class="complete-item-btn bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-md text-xs transition duration-150 ease-in-out" title="Mark as Complete (Removes from list)">
+                        <i class="fas fa-check-double"></i> </button>
                 </div>
             `;
 
             listItem.querySelector('.edit-item-btn').addEventListener('click', () => editItemHandler(item));
             listItem.querySelector('.delete-item-btn').addEventListener('click', () => deleteItemHandler(item.id, item.type));
-            listItem.querySelector('.complete-item-btn').addEventListener('click', () => completeItemHandler(item.id, item.type));
+            listItem.querySelector('.complete-item-btn').addEventListener('click', () => completeItemHandler(item.id, item.type)); 
             
             listElement.appendChild(listItem);
         }
 
-        // --- Daily Plan Logic (IMPROVED ALGORITHM) ---
+        // --- Daily Plan Logic (Revised for Robustness and Clarity) ---
         function generateAndDisplayDailyPlan() {
-            dailyPlan = []; 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); 
+            const todayDateStr = getTodayDateString();
+            let newDailyPlanCandidates = [];
 
-            let allActiveItems = [...courses, ...projects].filter(item => {
-                const itemEndDate = new Date(item.endDate); 
-                itemEndDate.setHours(23, 59, 59, 999); 
-                return itemEndDate >= today && new Date(item.startDate) <= today; // Ensure task has started
+            // 1. Get all potentially active items from main lists
+            let allPotentiallyActiveItems = [...courses, ...projects].filter(item => {
+                const itemStartDate = new Date(item.startDate);
+                const itemEndDate = new Date(item.endDate);
+                const today = new Date(todayDateStr); 
+
+                itemStartDate.setHours(0, 0, 0, 0);
+                itemEndDate.setHours(23, 59, 59, 999);
+                
+                return itemEndDate >= today && itemStartDate <= today;
             });
 
-            // Sort all active items: 1. Priority, 2. Start Date
+            // 2. Sort them by priority, then by how long they've been active (earlier start date first)
             const priorityOrder = { high: 0, medium: 1, low: 2 };
-            allActiveItems.sort((a, b) => {
-                if (priorityOrder[a.priority] < priorityOrder[b.priority]) return -1;
-                if (priorityOrder[a.priority] > priorityOrder[b.priority]) return 1;
+            allPotentiallyActiveItems.sort((a, b) => {
+                if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+                    return priorityOrder[a.priority] - priorityOrder[b.priority];
+                }
                 return new Date(a.startDate) - new Date(b.startDate);
             });
-            
-            let selectedTasks = [];
-            let remainingActiveItems = [...allActiveItems];
 
-            // 1. Select Top Priority Task (1 task)
-            if (remainingActiveItems.length > 0) {
-                selectedTasks.push(remainingActiveItems.shift()); // Take the first and remove from pool
+            // 3. Select tasks based on the refined algorithm
+            let selectedTasksForPlan = [];
+            let remainingForSelection = [...allPotentiallyActiveItems];
+
+            // Task 1: Highest priority
+            if (remainingForSelection.length > 0) {
+                selectedTasksForPlan.push(remainingForSelection.shift());
             }
 
-            // 2. Select "Variety" Task (1 task)
-            if (remainingActiveItems.length > 0 && selectedTasks.length < 3) {
+            // Task 2: Variety or next highest priority
+            if (remainingForSelection.length > 0 && selectedTasksForPlan.length < 3) {
                 let varietyTask = null;
-                if (selectedTasks.length > 0) { // If first task exists
-                    const firstTaskType = selectedTasks[0].type;
-                    // Try to find a task of a different type
-                    varietyTask = remainingActiveItems.find(task => task.type !== firstTaskType);
+                if (selectedTasksForPlan.length > 0 && selectedTasksForPlan[0]) { // Check if first task exists
+                    const firstTaskType = selectedTasksForPlan[0].type;
+                    varietyTask = remainingForSelection.find(task => task.type !== firstTaskType);
                 }
                 if (varietyTask) {
-                    selectedTasks.push(varietyTask);
-                    remainingActiveItems = remainingActiveItems.filter(task => task.id !== varietyTask.id);
-                } else if (remainingActiveItems.length > 0) { // If no different type, or no first task, take next from sorted list
-                    selectedTasks.push(remainingActiveItems.shift());
+                    selectedTasksForPlan.push(varietyTask);
+                    remainingForSelection = remainingForSelection.filter(task => task.id !== varietyTask.id);
+                } else if (remainingForSelection.length > 0) {
+                    selectedTasksForPlan.push(remainingForSelection.shift());
                 }
             }
-            
-            // 3. Select "Long-Term Contribution" Task (1 task, if space allows)
-            if (remainingActiveItems.length > 0 && selectedTasks.length < 3) {
-                // Sort remaining by endDate descending (furthest first), then by priority
-                remainingActiveItems.sort((a,b) => {
+
+            // Task 3: Long-term contribution or next highest priority
+            if (remainingForSelection.length > 0 && selectedTasksForPlan.length < 3) {
+                let longTermCandidates = remainingForSelection.filter(task => !selectedTasksForPlan.find(st => st && st.id === task.id)); // Ensure st is not undefined
+                longTermCandidates.sort((a, b) => {
                     const endDateDiff = new Date(b.endDate) - new Date(a.endDate);
                     if (endDateDiff !== 0) return endDateDiff;
                     return priorityOrder[a.priority] - priorityOrder[b.priority];
                 });
-                selectedTasks.push(remainingActiveItems.shift());
+                if (longTermCandidates.length > 0) {
+                    selectedTasksForPlan.push(longTermCandidates.shift());
+                } else if (remainingForSelection.length > 0) { 
+                     selectedTasksForPlan.push(remainingForSelection.shift());
+                }
             }
             
-            // Ensure we don't exceed 3 tasks, though the logic above should handle it.
-            const tasksForTodayFocus = selectedTasks.slice(0, 3);
-
+            const tasksForTodayFocus = selectedTasksForPlan.filter(task => task !== undefined).slice(0, 3); // Filter out undefined and ensure max 3
             const timeSlots = ["Morning (9:00 AM)", "Mid-day (1:00 PM)", "Afternoon (4:00 PM)"];
+
+            // 4. Load previous completion statuses for today
+            const loadedStoredPlan = JSON.parse(localStorage.getItem('taskmaster_dailyPlanTasks'));
+            let previousCompletions = {};
+            if (loadedStoredPlan && loadedStoredPlan.date === todayDateStr) {
+                loadedStoredPlan.tasks.forEach(task => {
+                    if (task.completed) {
+                        previousCompletions[task.itemId] = true;
+                    }
+                });
+            }
             
+            // 5. Build the newDailyPlanCandidates array, preserving completion status
             tasksForTodayFocus.forEach((item, index) => {
-                if (item && index < timeSlots.length) { // Check if item is not undefined
-                    dailyPlan.push({
+                if (item && index < timeSlots.length) { // Ensure item is not undefined
+                    newDailyPlanCandidates.push({
                         itemId: item.id,
-                        type: item.type,
+                        originalType: item.type,
                         name: item.name,
                         priority: item.priority,
-                        startDate: item.startDate,
-                        endDate: item.endDate,
-                        userPreferredTime: item.time, 
-                        scheduledTimeSlot: timeSlots[index], 
-                        notified: false
+                        scheduledTimeSlot: timeSlots[index],
+                        completed: previousCompletions[item.id] || false 
                     });
                 }
             });
+            
+            dailyPlan = newDailyPlanCandidates; // Assign the newly generated and status-updated plan
+
+            // 6. Save the potentially updated plan for today
+            storedDailyPlanTasks = { date: todayDateStr, tasks: dailyPlan };
+            localStorage.setItem('taskmaster_dailyPlanTasks', JSON.stringify(storedDailyPlanTasks));
+            
             renderDailyPlan();
+            updateStreakDisplay();
         }
 
 
         function renderDailyPlan() {
             dailyPlanListEl.innerHTML = '';
             const hasDailyPlanItems = dailyPlan.length > 0;
-            noDailyPlanMessage.classList.toggle('hidden', !hasDailyPlanItems); // Show if NO items
+            noDailyPlanMessage.classList.toggle('hidden', hasDailyPlanItems);
             downloadDailyPlanButton.classList.toggle('hidden', !hasDailyPlanItems); 
             downloadMonthlyPlanButton.classList.toggle('hidden', courses.length === 0 && projects.length === 0);
 
-
             dailyPlan.forEach(planItem => {
                 const listItem = document.createElement('li');
-                const priorityClasses = getPriorityClasses(planItem.priority);
-                listItem.className = `daily-plan-card p-4 border-l-4 ${priorityClasses} rounded-md shadow flex justify-between items-center`;
+                const originalItem = [...courses, ...projects].find(it => it.id === planItem.itemId);
+                const priorityClasses = originalItem ? getPriorityClasses(originalItem.priority) : getPriorityClasses(planItem.priority || 'medium'); // Fallback for priority
                 
-                const itemIcon = planItem.type === 'course' ? 'fas fa-book-open' : 'fas fa-project-diagram';
-                const itemColor = planItem.type === 'course' ? 'text-blue-400' : 'text-purple-400';
+                listItem.className = `daily-plan-card p-3 ${priorityClasses} rounded-md shadow flex justify-between items-center`;
+                if (planItem.completed) {
+                    listItem.classList.add('completed');
+                }
+                
+                const itemIcon = originalItem ? (originalItem.type === 'course' ? 'fas fa-book-open' : 'fas fa-project-diagram') : 'fas fa-tasks'; // Fallback icon
+                const itemColor = originalItem ? (originalItem.type === 'course' ? 'text-blue-400' : 'text-purple-400') : 'text-gray-400';
 
                 listItem.innerHTML = `
-                    <div>
+                    <div class="flex-1 min-w-0">
                         <div class="flex items-center">
-                            <i class="${itemIcon} ${itemColor} mr-2 text-lg"></i>
-                            <span class="font-semibold text-white truncate" title="${planItem.name}">${planItem.name}</span>
+                            <i class="${itemIcon} ${itemColor} mr-2 text-md"></i>
+                            <span class="task-name-daily font-semibold text-white truncate" title="${planItem.name}">${planItem.name}</span>
                         </div>
-                        <p class="text-sm text-gray-400 ml-6">${planItem.scheduledTimeSlot}</p>
+                        <p class="text-xs text-gray-500 ml-6">${planItem.scheduledTimeSlot}</p>
                     </div>
-                    <span class="text-xs font-medium ${priorityClasses.split(' ')[1]}">${planItem.priority.toUpperCase()}</span>
+                    <div class="flex items-center">
+                        <span class="text-xs font-medium ${priorityClasses.split(' ')[1]} mr-3">${planItem.priority.toUpperCase()}</span>
+                        <button class="complete-daily-task-btn p-2 rounded-full hover:bg-green-600 focus:outline-none transition-colors ${planItem.completed ? 'bg-green-500 text-white' : 'bg-gray-600 hover:bg-gray-500 text-gray-300'}" data-item-id="${planItem.itemId}" title="${planItem.completed ? 'Mark as Incomplete' : 'Mark as Complete'}">
+                            <i class="fas ${planItem.completed ? 'fa-check-double' : 'fa-check'}"></i>
+                        </button>
+                    </div>
                 `;
+                listItem.querySelector('.complete-daily-task-btn').addEventListener('click', () => handleDailyTaskCompletion(planItem.itemId));
                 dailyPlanListEl.appendChild(listItem);
             });
         }
+        
+        function handleDailyTaskCompletion(itemIdToToggle) {
+            const taskIndex = dailyPlan.findIndex(task => task.itemId === itemIdToToggle);
+            if (taskIndex > -1) {
+                dailyPlan[taskIndex].completed = !dailyPlan[taskIndex].completed;
+                
+                storedDailyPlanTasks.tasks = dailyPlan; 
+                localStorage.setItem('taskmaster_dailyPlanTasks', JSON.stringify(storedDailyPlanTasks));
 
-        // --- Download Daily Plan Functionality (Refined Design) ---
+                renderDailyPlan(); 
+                checkStreakLogic(); 
+                updateAIInsights(); 
+            }
+        }
+
+        function checkStreakLogic() {
+            const allDailyTasksCompleted = dailyPlan.length > 0 && dailyPlan.every(task => task.completed);
+            const todayStr = getTodayDateString();
+
+            if (allDailyTasksCompleted) {
+                if (streakData.lastCompletionDate === todayStr) {
+                    // Already counted
+                } else {
+                    const yesterday = new Date(); 
+                    yesterday.setDate(new Date(todayStr).getDate() - 1); // Ensure using today's date for calculation
+                    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+                    if (streakData.lastCompletionDate === yesterdayStr) {
+                        streakData.count++;
+                        showNotification(`Awesome! ${streakData.count}-day streak! 🔥`, 'celebrate', 'Streak Extended!');
+                    } else {
+                        streakData.count = 1;
+                        showNotification("Great job completing today's focus! Streak started! 🎉", 'celebrate', 'Day Complete!');
+                    }
+                    streakData.lastCompletionDate = todayStr;
+                }
+            }
+            localStorage.setItem('taskmaster_streakData', JSON.stringify(streakData));
+            updateStreakDisplay();
+        }
+
+        function updateStreakDisplay() {
+            streakDisplayContainer.innerHTML = ''; 
+            if (streakData.count > 0) {
+                const streakEl = document.createElement('div');
+                streakEl.className = 'streak-display fade-in';
+                streakEl.innerHTML = `<i class="fas fa-fire"></i> ${streakData.count}-Day Streak! Keep it up!`;
+                streakDisplayContainer.appendChild(streakEl);
+            } else {
+                 const noStreakEl = document.createElement('div');
+                noStreakEl.className = 'streak-display fade-in text-gray-400';
+                noStreakEl.innerHTML = `Complete all daily tasks to start a streak! 💪`;
+                streakDisplayContainer.appendChild(noStreakEl);
+            }
+        }
+
+
+        // --- Download Daily Plan Functionality ---
         function handleDownloadDailyPlan() {
             if (dailyPlan.length === 0) {
                 showNotification("No daily plan to download.", 'warning', 'Empty Plan');
@@ -643,6 +783,7 @@
                         .tag-high { background-color: #F44336; }
                         .tag-medium { background-color: #FFC107; color: #212529; }
                         .tag-low { background-color: #4CAF50; }
+                        .task-completed-indicator { margin-left: 10px; font-weight: bold; color: #1DB954; }
                         .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 14px; color: #777; }
                         @media print { body { background-color: #fff; margin: 0; padding: 0; } .page-container { box-shadow: none; margin: 0; max-width: 100%; border-radius: 0;} }
                     </style>
@@ -670,14 +811,18 @@
                     planHtml += `<div class="time-slot-group">`;
                     planHtml += `<h2 class="time-slot-header">${slot}</h2>`;
                     groupedTasks[slot].forEach(item => {
+                        const originalItemDetails = [...courses, ...projects].find(it => it.id === item.itemId);
+                        const typeDisplay = originalItemDetails ? originalItemDetails.type.charAt(0).toUpperCase() + originalItemDetails.type.slice(1) : 'Task';
                         const priorityBorderClass = `priority-${item.priority.toLowerCase()}`;
                         const priorityTagClass = `tag-${item.priority.toLowerCase()}`;
-                        const typeDisplay = item.type.charAt(0).toUpperCase() + item.type.slice(1);
+                        const completedIndicator = item.completed ? '<span class="task-completed-indicator">(Completed)</span>' : '';
+                        
                         planHtml += `
-                            <div class="plan-item ${priorityBorderClass}">
+                            <div class="plan-item ${priorityBorderClass} ${item.completed ? 'opacity-70' : ''}">
                                 <div class="plan-item-details">
-                                    <span class="task-name">${item.name}</span>
+                                    <span class="task-name ${item.completed ? 'line-through' : ''}">${item.name}</span>
                                     <span class="item-type">(${typeDisplay})</span>
+                                    ${completedIndicator}
                                 </div>
                                 <span class="priority-tag ${priorityTagClass}">${item.priority.toUpperCase()}</span>
                             </div>
@@ -706,13 +851,13 @@
         function handleDownloadMonthlyPlan() {
             const today = new Date();
             const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth(); // 0-indexed
+            const currentMonth = today.getMonth(); 
 
             const monthName = today.toLocaleDateString('en-US', { month: 'long' });
             const fileName = `TaskMaster_Pro_Monthly_Plan_${currentYear}-${String(currentMonth + 1).padStart(2, '0')}.html`;
 
             const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0 (Sun) - 6 (Sat)
+            const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); 
 
             const allTasks = [...courses, ...projects];
             if (allTasks.length === 0) {
@@ -740,7 +885,7 @@
                         .day-cell.other-month { background-color: #f9f9f9; color: #aaa; }
                         .day-number { font-weight: 600; margin-bottom: 5px; color: #333; text-align: right; font-size: 1.1em; }
                         .day-cell.other-month .day-number { color: #ccc; }
-                        .tasks-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; max-height: 80px; flex-grow: 1;} /* scroll for many tasks */
+                        .tasks-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; max-height: 80px; flex-grow: 1;}
                         .tasks-list li { background-color: #e8f5e9; margin-bottom: 4px; padding: 3px 6px; border-radius: 4px; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 3px solid; cursor: default; }
                         .task-priority-high { border-left-color: #F44336; background-color: #ffebee; color: #c62828; }
                         .task-priority-medium { border-left-color: #FFC107; background-color: #fff8e1; color: #e65100; }
@@ -892,7 +1037,7 @@
             }
 
             saveToLocalStorage();
-            renderAllItems();
+            renderAllItems(); 
             closeModal();
         }
 
@@ -912,17 +1057,17 @@
                         projects = projects.filter(p => p.id !== id);
                     }
                     saveToLocalStorage();
-                    renderAllItems();
+                    renderAllItems(); 
                     showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted.`, 'success', 'Deleted');
                     closeConfirmationDialog();
                 }
             );
         }
 
-        function completeItemHandler(id, type) {
+        function completeItemHandler(id, type) { 
              showConfirmationDialog(
                 `Complete ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-                `Mark this ${type} as complete? This will remove it from active lists.`,
+                `Mark this ${type} as complete? This will remove it from your active lists.`,
                 () => {
                     if (type === 'course') {
                         courses = courses.filter(c => c.id !== id);
@@ -930,7 +1075,7 @@
                         projects = projects.filter(p => p.id !== id);
                     }
                     saveToLocalStorage();
-                    renderAllItems();
+                    renderAllItems(); 
                     showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} marked as complete!`, 'success', 'Completed');
                     closeConfirmationDialog();
                 }
@@ -963,67 +1108,98 @@
             const storedProjects = localStorage.getItem('taskmaster_projects');
             if (storedCourses) courses = JSON.parse(storedCourses);
             if (storedProjects) projects = JSON.parse(storedProjects);
+
+            const loadedStreakData = JSON.parse(localStorage.getItem('taskmaster_streakData'));
+            if (loadedStreakData) {
+                streakData = loadedStreakData;
+            }
         }
 
-        // --- AI Insights ---
+        // --- AI Insights (Enhanced with more motivational messages) ---
         function updateAIInsights() {
             const totalTasks = courses.length + projects.length;
-            if (totalTasks === 0) {
-                aiRecommendationTextEl.innerHTML = "Add some courses or projects to get personalized insights and scheduling tips!";
+            aiRecommendationTextEl.innerHTML = ''; 
+
+            if (totalTasks === 0 && dailyPlan.length === 0) {
+                aiRecommendationTextEl.innerHTML = "<p>Welcome to TaskMaster Pro! Add your first course or project to get started and receive personalized insights.</p>";
                 return;
             }
 
             let insights = [];
-            const highPriorityTasks = [...courses, ...projects].filter(t => t.priority === 'high').length;
+            const todayStr = getTodayDateString();
+            const hour = new Date().getHours();
+            let greeting = "Hello";
+            if (hour < 12) greeting = "Good morning";
+            else if (hour < 18) greeting = "Good afternoon";
+            else greeting = "Good evening";
+            insights.push(`${greeting}! Let's make today productive.`);
+
+            if (streakData.count > 0 && streakData.lastCompletionDate === todayStr) {
+                 insights.push(`Fantastic! You've completed today's focus and are on a <strong class="text-orange-400">${streakData.count}-day streak!</strong> 🔥 Keep that amazing momentum!`);
+            } else if (streakData.count > 0) {
+                 insights.push(`You're on a <strong class="text-orange-400">${streakData.count}-day streak!</strong> One step at a time to keep it going!`);
+            } else if (dailyPlan.length > 0 && dailyPlan.every(task => task.completed)) {
+                 insights.push(`You've smashed all your focus tasks for today! 🎉 Time to celebrate or plan for tomorrow!`);
+            }
+
+
+            const completedDailyTasks = dailyPlan.filter(task => task.completed).length;
+            if (dailyPlan.length > 0 && completedDailyTasks > 0 && completedDailyTasks < dailyPlan.length) {
+                insights.push(`You're making great progress: <strong class="text-green-400">${completedDailyTasks}/${dailyPlan.length} focus tasks done!</strong> Almost there!`);
+            } else if (dailyPlan.length > 0 && completedDailyTasks === 0) {
+                insights.push(`Today's focus has <strong class="text-yellow-300">${dailyPlan.length} task(s)</strong>. You've got this!`);
+            } else if (dailyPlan.length === 0 && totalTasks > 0) {
+                insights.push("No specific tasks in 'Today's Focus'. A good day to review upcoming work or enjoy a break!");
+            }
+
+
+            const highPriorityActiveTasks = [...courses, ...projects].filter(t => t.priority === 'high' && new Date(t.endDate) >= new Date(todayStr) && new Date(t.startDate) <= new Date(todayStr)).length;
+            if (highPriorityActiveTasks > 0) {
+                insights.push(`Remember those <strong class="text-red-400">${highPriorityActiveTasks} active high-priority items!</strong> They're key.`);
+            }
+            
             const upcomingDeadlines = [...courses, ...projects].filter(t => {
                 const endDate = new Date(t.endDate);
-                const today = new Date();
-                const diffTime = endDate - today;
+                const diffTime = endDate - new Date(todayStr);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                return diffDays >= 0 && diffDays <= 7; 
+                return diffDays >= 0 && diffDays <= 3; // Due within 3 days
             }).length;
-            
-            if (dailyPlan.length > 0 && dailyPlan.length <= 3) {
-                 insights.push(`Your day is focused on <strong class="text-green-300">${dailyPlan.length} key task(s)</strong>, including long-term goals. Good balance!`);
-            } else if (totalTasks > 0 && dailyPlan.length === 0) {
-                insights.push("Your 'Today's Focus' is clear. Consider if any long-term projects need attention or enjoy a well-deserved break!");
-            }
 
-
-            if (highPriorityTasks > 0) {
-                insights.push(`You have <strong class="text-yellow-300">${highPriorityTasks} high-priority item(s)</strong> overall. Ensure they get attention.`);
-            }
             if (upcomingDeadlines > 0) {
-                insights.push(`<strong class="text-orange-300">${upcomingDeadlines} item(s) are due within the next 7 days.</strong> Plan accordingly.`);
+                insights.push(`<strong class="text-yellow-300">${upcomingDeadlines} item(s) are due within the next 3 days.</strong> Stay on top of them!`);
             }
             
-            const longTermTasks = [...courses, ...projects].filter(t => {
-                const endDate = new Date(t.endDate);
-                const today = new Date();
-                const diffTime = endDate - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                return diffDays > 30; // Due more than a month away
-            }).length;
-
-            if(longTermTasks > 0 && !dailyPlan.some(dpTask => {
+            const longTermTasksInFocus = dailyPlan.filter(dpTask => {
                 const taskDetails = [...courses, ...projects].find(t => t.id === dpTask.itemId);
                 if (!taskDetails) return false;
                 const endDate = new Date(taskDetails.endDate);
-                const today = new Date();
-                const diffTime = endDate - today;
+                const diffTime = endDate - new Date(todayStr);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 return diffDays > 30;
-            })) {
-                // If there are long term tasks but none are in today's focus
-                 insights.push(`Consider dedicating some time to one of your <strong class="text-blue-300">${longTermTasks} long-term tasks</strong> to make steady progress.`);
+            }).length;
+
+            if(longTermTasksInFocus > 0){
+                insights.push(`Excellent work contributing to your <strong class="text-blue-300">long-term projects</strong> today!`);
+            }
+
+            // Add a random motivational quote if other insights are few
+            if (insights.length < 3 && motivationalQuotes.length > 0) {
+                let quoteIndex;
+                do {
+                    quoteIndex = Math.floor(Math.random() * motivationalQuotes.length);
+                } while (quoteIndex === lastQuoteIndex && motivationalQuotes.length > 1); // Ensure new quote if possible
+                lastQuoteIndex = quoteIndex;
+                insights.push(`<em>"${motivationalQuotes[quoteIndex]}"</em>`);
             }
 
 
-            if (insights.length === 0) {
-                insights.push("Keep up the great work! Remember to balance your workload and take breaks.");
+            if (insights.length <= 1 && totalTasks > 0) { 
+                insights.push("Keep adding and completing tasks to make the most of TaskMaster Pro!");
+            } else if (insights.length <=1 && totalTasks === 0) {
+                 insights.push("Add your first course or project to begin your journey to mastery!");
             }
             
-            aiRecommendationTextEl.innerHTML = insights.map(insight => `<p class="mb-2"><i class="fas fa-check-circle text-green-400 mr-2"></i>${insight}</p>`).join('');
+            aiRecommendationTextEl.innerHTML = insights.map(insight => `<p class="mb-2 fade-in"><i class="fas fa-check-circle text-green-400 mr-2"></i>${insight}</p>`).join('');
         }
         
         // --- Event Listeners Setup ---
@@ -1070,11 +1246,10 @@
 
         // --- Initialization ---
         function initApp() {
-            loadFromLocalStorage();
+            loadFromLocalStorage(); 
             renderAllItems(); 
             switchView('courses'); 
             setupEventListeners();
-            updateAIInsights(); 
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
