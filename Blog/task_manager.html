@@ -90,38 +90,15 @@
         ::-webkit-scrollbar-thumb:hover { background: #1DB954; }
 
         .daily-plan-card {
-            background-color: #282828; 
+            background-color: #282828; /* Slightly different background for plan items */
             border-left-width: 4px;
-            transition: opacity 0.3s ease, background-color 0.3s ease; /* Added transition */
-        }
-        .daily-plan-card.completed {
-            opacity: 0.6;
-            background-color: #222; /* Slightly darker when completed */
-        }
-        .daily-plan-card.completed .task-name-daily {
-            text-decoration: line-through;
-            color: #888;
         }
         .manager-notification {
-            background-color: #1DB954; 
-            border-left-color: #121212; 
+            background-color: #1DB954; /* Spotify Green for manager notifications */
+            border-left-color: #121212; /* Darker green border */
             color: white;
         }
         .manager-notification .fa-bullhorn { color: white; }
-
-        .streak-display {
-            background-color: #282828;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-            text-align: center;
-            font-size: 0.9em;
-            color: #E0E0E0;
-        }
-        .streak-display .fa-fire {
-            color: #FF9800; /* Orange fire icon */
-            margin-right: 5px;
-        }
     </style>
 </head>
 <body class="p-4 sm:p-6">
@@ -178,10 +155,6 @@
                     <ul id="daily-plan-list" class="space-y-3">
                         </ul>
                     <p id="no-daily-plan-message" class="text-center text-gray-500 py-6">Nothing scheduled for today. Plan your tasks or enjoy your day!</p>
-                    
-                    <div id="streak-display-container" class="mt-4">
-                        </div>
-
                     <div class="mt-6 space-y-3">
                         <button id="download-daily-plan-button" class="w-full btn-secondary inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-md shadow-sm hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
                             <i class="fas fa-download mr-2"></i> Download Daily Plan
@@ -301,12 +274,7 @@
         let projects = [];
         let editingId = null; 
         let currentView = 'courses';
-        // dailyPlan stores: { itemId, type, name, priority, ..., completed: false }
         let dailyPlan = []; 
-        // Stores daily plan tasks with completion status for the current day
-        let storedDailyPlanTasks = { date: '', tasks: [] }; 
-        // Stores streak data
-        let streakData = { count: 0, lastCompletionDate: '' };
 
         // DOM Elements
         const courseListEl = document.getElementById('course-list');
@@ -326,8 +294,6 @@
         const noDailyPlanMessage = document.getElementById('no-daily-plan-message');
         const downloadDailyPlanButton = document.getElementById('download-daily-plan-button'); 
         const downloadMonthlyPlanButton = document.getElementById('download-monthly-plan-button');
-        const streakDisplayContainer = document.getElementById('streak-display-container');
-
 
         // Modal Elements
         const modal = document.getElementById('modal');
@@ -365,14 +331,6 @@
 
 
         // --- Utility Functions ---
-        function getTodayDateString() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
         function showNotification(message, type = 'success', title = 'Success!', isManagerAlert = false) {
             notificationText.textContent = message;
             notificationTitle.textContent = title;
@@ -392,9 +350,6 @@
             } else if (type === 'warning') {
                 notificationBox.classList.add('bg-yellow-500', 'border-yellow-700', 'text-gray-800');
                 notificationIcon.classList.add('fas', 'fa-exclamation-triangle');
-            } else if (type === 'celebrate') { // New type for celebratory messages
-                notificationBox.classList.add('bg-blue-500', 'border-blue-700', 'text-white'); // Example: blue for celebration
-                notificationIcon.classList.add('fas', 'fa-star'); // Example: star icon
             }
             
             notificationBox.classList.remove('hidden');
@@ -481,7 +436,7 @@
             noProjectsMessage.classList.toggle('hidden', projects.length > 0);
             projects.forEach(item => addItemToDOM(item, projectListEl));
             
-            generateAndDisplayDailyPlan(); // This will also call renderDailyPlan and updateStreakDisplay
+            generateAndDisplayDailyPlan();
             updateAIInsights();
         }
 
@@ -527,194 +482,127 @@
                     <button class="delete-item-btn bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-md text-xs transition duration-150 ease-in-out" title="Delete">
                         <i class="fas fa-trash-alt"></i>
                     </button>
-                    <button class="complete-item-btn bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-md text-xs transition duration-150 ease-in-out" title="Mark as Complete (Removes from list)">
-                        <i class="fas fa-check-double"></i> </button>
+                    <button class="complete-item-btn bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-md text-xs transition duration-150 ease-in-out" title="Mark as Complete">
+                        <i class="fas fa-check-circle"></i>
+                    </button>
                 </div>
             `;
 
             listItem.querySelector('.edit-item-btn').addEventListener('click', () => editItemHandler(item));
             listItem.querySelector('.delete-item-btn').addEventListener('click', () => deleteItemHandler(item.id, item.type));
-            // The main list complete button still removes the item entirely
-            listItem.querySelector('.complete-item-btn').addEventListener('click', () => completeItemHandler(item.id, item.type)); 
+            listItem.querySelector('.complete-item-btn').addEventListener('click', () => completeItemHandler(item.id, item.type));
             
             listElement.appendChild(listItem);
         }
 
         // --- Daily Plan Logic (IMPROVED ALGORITHM) ---
         function generateAndDisplayDailyPlan() {
-            const todayDateStr = getTodayDateString();
-            // Load stored daily plan for today, if any
-            const loadedStoredPlan = JSON.parse(localStorage.getItem('taskmaster_dailyPlanTasks'));
-            if (loadedStoredPlan && loadedStoredPlan.date === todayDateStr) {
-                dailyPlan = loadedStoredPlan.tasks;
-            } else {
-                // Generate new plan for today
-                dailyPlan = []; // Reset daily plan
-                let allActiveItems = [...courses, ...projects].filter(item => {
-                    const itemEndDate = new Date(item.endDate); 
-                    itemEndDate.setHours(23, 59, 59, 999); 
-                    return itemEndDate >= new Date(todayDateStr) && new Date(item.startDate) <= new Date(todayDateStr);
-                });
+            dailyPlan = []; 
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); 
 
-                const priorityOrder = { high: 0, medium: 1, low: 2 };
-                allActiveItems.sort((a, b) => {
-                    if (priorityOrder[a.priority] < priorityOrder[b.priority]) return -1;
-                    if (priorityOrder[a.priority] > priorityOrder[b.priority]) return 1;
-                    return new Date(a.startDate) - new Date(b.startDate);
-                });
-                
-                let selectedTasksForPlan = [];
-                let remainingActiveItemsForPlan = [...allActiveItems];
+            let allActiveItems = [...courses, ...projects].filter(item => {
+                const itemEndDate = new Date(item.endDate); 
+                itemEndDate.setHours(23, 59, 59, 999); 
+                return itemEndDate >= today && new Date(item.startDate) <= today; // Ensure task has started
+            });
 
-                if (remainingActiveItemsForPlan.length > 0) {
-                    selectedTasksForPlan.push(remainingActiveItemsForPlan.shift()); 
-                }
+            // Sort all active items: 1. Priority, 2. Start Date
+            const priorityOrder = { high: 0, medium: 1, low: 2 };
+            allActiveItems.sort((a, b) => {
+                if (priorityOrder[a.priority] < priorityOrder[b.priority]) return -1;
+                if (priorityOrder[a.priority] > priorityOrder[b.priority]) return 1;
+                return new Date(a.startDate) - new Date(b.startDate);
+            });
+            
+            let selectedTasks = [];
+            let remainingActiveItems = [...allActiveItems];
 
-                if (remainingActiveItemsForPlan.length > 0 && selectedTasksForPlan.length < 3) {
-                    let varietyTask = null;
-                    if (selectedTasksForPlan.length > 0) {
-                        const firstTaskType = selectedTasksForPlan[0].type;
-                        varietyTask = remainingActiveItemsForPlan.find(task => task.type !== firstTaskType);
-                    }
-                    if (varietyTask) {
-                        selectedTasksForPlan.push(varietyTask);
-                        remainingActiveItemsForPlan = remainingActiveItemsForPlan.filter(task => task.id !== varietyTask.id);
-                    } else if (remainingActiveItemsForPlan.length > 0) {
-                        selectedTasksForPlan.push(remainingActiveItemsForPlan.shift());
-                    }
+            // 1. Select Top Priority Task (1 task)
+            if (remainingActiveItems.length > 0) {
+                selectedTasks.push(remainingActiveItems.shift()); // Take the first and remove from pool
+            }
+
+            // 2. Select "Variety" Task (1 task)
+            if (remainingActiveItems.length > 0 && selectedTasks.length < 3) {
+                let varietyTask = null;
+                if (selectedTasks.length > 0) { // If first task exists
+                    const firstTaskType = selectedTasks[0].type;
+                    // Try to find a task of a different type
+                    varietyTask = remainingActiveItems.find(task => task.type !== firstTaskType);
                 }
-                
-                if (remainingActiveItemsForPlan.length > 0 && selectedTasksForPlan.length < 3) {
-                    remainingActiveItemsForPlan.sort((a,b) => new Date(b.endDate) - new Date(a.endDate) || priorityOrder[a.priority] - priorityOrder[b.priority]);
-                    selectedTasksForPlan.push(remainingActiveItemsForPlan.shift());
+                if (varietyTask) {
+                    selectedTasks.push(varietyTask);
+                    remainingActiveItems = remainingActiveItems.filter(task => task.id !== varietyTask.id);
+                } else if (remainingActiveItems.length > 0) { // If no different type, or no first task, take next from sorted list
+                    selectedTasks.push(remainingActiveItems.shift());
                 }
-                
-                const tasksForTodayFocus = selectedTasksForPlan.slice(0, 3);
-                const timeSlots = ["Morning (9:00 AM)", "Mid-day (1:00 PM)", "Afternoon (4:00 PM)"];
-                
-                tasksForTodayFocus.forEach((item, index) => {
-                    if (item && index < timeSlots.length) {
-                        dailyPlan.push({
-                            itemId: item.id, // Store original item ID
-                            originalType: item.type, // Store original type to fetch details if needed
-                            name: item.name,
-                            priority: item.priority,
-                            scheduledTimeSlot: timeSlots[index], 
-                            completed: false // New tasks are not completed
-                        });
-                    }
-                });
-                // Save the newly generated plan for today
-                storedDailyPlanTasks = { date: todayDateStr, tasks: dailyPlan };
-                localStorage.setItem('taskmaster_dailyPlanTasks', JSON.stringify(storedDailyPlanTasks));
             }
             
+            // 3. Select "Long-Term Contribution" Task (1 task, if space allows)
+            if (remainingActiveItems.length > 0 && selectedTasks.length < 3) {
+                // Sort remaining by endDate descending (furthest first), then by priority
+                remainingActiveItems.sort((a,b) => {
+                    const endDateDiff = new Date(b.endDate) - new Date(a.endDate);
+                    if (endDateDiff !== 0) return endDateDiff;
+                    return priorityOrder[a.priority] - priorityOrder[b.priority];
+                });
+                selectedTasks.push(remainingActiveItems.shift());
+            }
+            
+            // Ensure we don't exceed 3 tasks, though the logic above should handle it.
+            const tasksForTodayFocus = selectedTasks.slice(0, 3);
+
+            const timeSlots = ["Morning (9:00 AM)", "Mid-day (1:00 PM)", "Afternoon (4:00 PM)"];
+            
+            tasksForTodayFocus.forEach((item, index) => {
+                if (item && index < timeSlots.length) { // Check if item is not undefined
+                    dailyPlan.push({
+                        itemId: item.id,
+                        type: item.type,
+                        name: item.name,
+                        priority: item.priority,
+                        startDate: item.startDate,
+                        endDate: item.endDate,
+                        userPreferredTime: item.time, 
+                        scheduledTimeSlot: timeSlots[index], 
+                        notified: false
+                    });
+                }
+            });
             renderDailyPlan();
-            updateStreakDisplay(); // Also update streak display when plan is generated/loaded
         }
+
 
         function renderDailyPlan() {
             dailyPlanListEl.innerHTML = '';
             const hasDailyPlanItems = dailyPlan.length > 0;
-            noDailyPlanMessage.classList.toggle('hidden', hasDailyPlanItems);
+            noDailyPlanMessage.classList.toggle('hidden', !hasDailyPlanItems); // Show if NO items
             downloadDailyPlanButton.classList.toggle('hidden', !hasDailyPlanItems); 
             downloadMonthlyPlanButton.classList.toggle('hidden', courses.length === 0 && projects.length === 0);
 
+
             dailyPlan.forEach(planItem => {
                 const listItem = document.createElement('li');
-                // Use original item's priority for styling
-                const originalItem = [...courses, ...projects].find(it => it.id === planItem.itemId);
-                const priorityClasses = originalItem ? getPriorityClasses(originalItem.priority) : getPriorityClasses('medium');
+                const priorityClasses = getPriorityClasses(planItem.priority);
+                listItem.className = `daily-plan-card p-4 border-l-4 ${priorityClasses} rounded-md shadow flex justify-between items-center`;
                 
-                listItem.className = `daily-plan-card p-3 ${priorityClasses} rounded-md shadow flex justify-between items-center`;
-                if (planItem.completed) {
-                    listItem.classList.add('completed');
-                }
-                
-                const itemIcon = originalItem ? (originalItem.type === 'course' ? 'fas fa-book-open' : 'fas fa-project-diagram') : 'fas fa-question-circle';
-                const itemColor = originalItem ? (originalItem.type === 'course' ? 'text-blue-400' : 'text-purple-400') : 'text-gray-400';
+                const itemIcon = planItem.type === 'course' ? 'fas fa-book-open' : 'fas fa-project-diagram';
+                const itemColor = planItem.type === 'course' ? 'text-blue-400' : 'text-purple-400';
 
                 listItem.innerHTML = `
-                    <div class="flex-1 min-w-0">
+                    <div>
                         <div class="flex items-center">
-                            <i class="${itemIcon} ${itemColor} mr-2 text-md"></i>
-                            <span class="task-name-daily font-semibold text-white truncate" title="${planItem.name}">${planItem.name}</span>
+                            <i class="${itemIcon} ${itemColor} mr-2 text-lg"></i>
+                            <span class="font-semibold text-white truncate" title="${planItem.name}">${planItem.name}</span>
                         </div>
-                        <p class="text-xs text-gray-500 ml-6">${planItem.scheduledTimeSlot}</p>
+                        <p class="text-sm text-gray-400 ml-6">${planItem.scheduledTimeSlot}</p>
                     </div>
-                    <div class="flex items-center">
-                        <span class="text-xs font-medium ${priorityClasses.split(' ')[1]} mr-3">${planItem.priority.toUpperCase()}</span>
-                        <button class="complete-daily-task-btn p-2 rounded-full hover:bg-green-600 focus:outline-none transition-colors ${planItem.completed ? 'bg-green-500 text-white' : 'bg-gray-600 hover:bg-gray-500 text-gray-300'}" data-item-id="${planItem.itemId}" title="${planItem.completed ? 'Mark as Incomplete' : 'Mark as Complete'}">
-                            <i class="fas ${planItem.completed ? 'fa-check-double' : 'fa-check'}"></i>
-                        </button>
-                    </div>
+                    <span class="text-xs font-medium ${priorityClasses.split(' ')[1]}">${planItem.priority.toUpperCase()}</span>
                 `;
-                listItem.querySelector('.complete-daily-task-btn').addEventListener('click', () => handleDailyTaskCompletion(planItem.itemId));
                 dailyPlanListEl.appendChild(listItem);
             });
         }
-        
-        function handleDailyTaskCompletion(itemIdToToggle) {
-            const taskIndex = dailyPlan.findIndex(task => task.itemId === itemIdToToggle);
-            if (taskIndex > -1) {
-                dailyPlan[taskIndex].completed = !dailyPlan[taskIndex].completed;
-                
-                // Save updated daily plan to local storage
-                storedDailyPlanTasks.tasks = dailyPlan; // Update the tasks in the stored object
-                localStorage.setItem('taskmaster_dailyPlanTasks', JSON.stringify(storedDailyPlanTasks));
-
-                renderDailyPlan(); // Re-render the list to show visual change
-                checkStreakLogic(); // Check if all tasks are done for streak
-                updateAIInsights(); // Update AI insights based on completion
-            }
-        }
-
-        function checkStreakLogic() {
-            const allDailyTasksCompleted = dailyPlan.length > 0 && dailyPlan.every(task => task.completed);
-            const todayStr = getTodayDateString();
-
-            if (allDailyTasksCompleted) {
-                if (streakData.lastCompletionDate === todayStr) {
-                    // Already counted for today, do nothing to streak.
-                } else {
-                    const yesterday = new Date(todayStr);
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
-
-                    if (streakData.lastCompletionDate === yesterdayStr) {
-                        streakData.count++;
-                        showNotification(`Awesome! ${streakData.count}-day streak! 🔥`, 'celebrate', 'Streak Extended!');
-                    } else {
-                        streakData.count = 1;
-                        showNotification("Great job completing today's focus! Streak started! 🎉", 'celebrate', 'Day Complete!');
-                    }
-                    streakData.lastCompletionDate = todayStr;
-                }
-            } else {
-                // If not all tasks are completed, but it was previously a full completion day,
-                // we don't reset the streak here. Streak only resets if a day is *missed*
-                // after a successful completion. The logic for this is handled by checking `lastCompletionDate`
-                // when a *new* full completion occurs.
-            }
-            localStorage.setItem('taskmaster_streakData', JSON.stringify(streakData));
-            updateStreakDisplay();
-        }
-
-        function updateStreakDisplay() {
-            streakDisplayContainer.innerHTML = ''; // Clear previous display
-            if (streakData.count > 0) {
-                const streakEl = document.createElement('div');
-                streakEl.className = 'streak-display fade-in';
-                streakEl.innerHTML = `<i class="fas fa-fire"></i> ${streakData.count}-Day Streak! Keep it up!`;
-                streakDisplayContainer.appendChild(streakEl);
-            } else {
-                 const noStreakEl = document.createElement('div');
-                noStreakEl.className = 'streak-display fade-in text-gray-400';
-                noStreakEl.innerHTML = `Complete all daily tasks to start a streak! 💪`;
-                streakDisplayContainer.appendChild(noStreakEl);
-            }
-        }
-
 
         // --- Download Daily Plan Functionality (Refined Design) ---
         function handleDownloadDailyPlan() {
@@ -755,7 +643,6 @@
                         .tag-high { background-color: #F44336; }
                         .tag-medium { background-color: #FFC107; color: #212529; }
                         .tag-low { background-color: #4CAF50; }
-                        .task-completed-indicator { margin-left: 10px; font-weight: bold; color: #1DB954; }
                         .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 14px; color: #777; }
                         @media print { body { background-color: #fff; margin: 0; padding: 0; } .page-container { box-shadow: none; margin: 0; max-width: 100%; border-radius: 0;} }
                     </style>
@@ -783,18 +670,14 @@
                     planHtml += `<div class="time-slot-group">`;
                     planHtml += `<h2 class="time-slot-header">${slot}</h2>`;
                     groupedTasks[slot].forEach(item => {
-                        const originalItemDetails = [...courses, ...projects].find(it => it.id === item.itemId);
-                        const typeDisplay = originalItemDetails ? originalItemDetails.type.charAt(0).toUpperCase() + originalItemDetails.type.slice(1) : 'Task';
                         const priorityBorderClass = `priority-${item.priority.toLowerCase()}`;
                         const priorityTagClass = `tag-${item.priority.toLowerCase()}`;
-                        const completedIndicator = item.completed ? '<span class="task-completed-indicator">(Completed)</span>' : '';
-                        
+                        const typeDisplay = item.type.charAt(0).toUpperCase() + item.type.slice(1);
                         planHtml += `
-                            <div class="plan-item ${priorityBorderClass} ${item.completed ? 'opacity-70' : ''}">
+                            <div class="plan-item ${priorityBorderClass}">
                                 <div class="plan-item-details">
-                                    <span class="task-name ${item.completed ? 'line-through' : ''}">${item.name}</span>
+                                    <span class="task-name">${item.name}</span>
                                     <span class="item-type">(${typeDisplay})</span>
-                                    ${completedIndicator}
                                 </div>
                                 <span class="priority-tag ${priorityTagClass}">${item.priority.toUpperCase()}</span>
                             </div>
@@ -823,13 +706,13 @@
         function handleDownloadMonthlyPlan() {
             const today = new Date();
             const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth(); 
+            const currentMonth = today.getMonth(); // 0-indexed
 
             const monthName = today.toLocaleDateString('en-US', { month: 'long' });
             const fileName = `TaskMaster_Pro_Monthly_Plan_${currentYear}-${String(currentMonth + 1).padStart(2, '0')}.html`;
 
             const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); 
+            const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0 (Sun) - 6 (Sat)
 
             const allTasks = [...courses, ...projects];
             if (allTasks.length === 0) {
@@ -857,7 +740,7 @@
                         .day-cell.other-month { background-color: #f9f9f9; color: #aaa; }
                         .day-number { font-weight: 600; margin-bottom: 5px; color: #333; text-align: right; font-size: 1.1em; }
                         .day-cell.other-month .day-number { color: #ccc; }
-                        .tasks-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; max-height: 80px; flex-grow: 1;}
+                        .tasks-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; max-height: 80px; flex-grow: 1;} /* scroll for many tasks */
                         .tasks-list li { background-color: #e8f5e9; margin-bottom: 4px; padding: 3px 6px; border-radius: 4px; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 3px solid; cursor: default; }
                         .task-priority-high { border-left-color: #F44336; background-color: #ffebee; color: #c62828; }
                         .task-priority-medium { border-left-color: #FFC107; background-color: #fff8e1; color: #e65100; }
@@ -1009,7 +892,7 @@
             }
 
             saveToLocalStorage();
-            renderAllItems(); // This will regenerate daily plan
+            renderAllItems();
             closeModal();
         }
 
@@ -1029,17 +912,17 @@
                         projects = projects.filter(p => p.id !== id);
                     }
                     saveToLocalStorage();
-                    renderAllItems(); // This will regenerate daily plan
+                    renderAllItems();
                     showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted.`, 'success', 'Deleted');
                     closeConfirmationDialog();
                 }
             );
         }
 
-        function completeItemHandler(id, type) { // This is for the main list, removes item
+        function completeItemHandler(id, type) {
              showConfirmationDialog(
                 `Complete ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-                `Mark this ${type} as complete? This will remove it from your active lists.`,
+                `Mark this ${type} as complete? This will remove it from active lists.`,
                 () => {
                     if (type === 'course') {
                         courses = courses.filter(c => c.id !== id);
@@ -1047,7 +930,7 @@
                         projects = projects.filter(p => p.id !== id);
                     }
                     saveToLocalStorage();
-                    renderAllItems(); // This will regenerate daily plan
+                    renderAllItems();
                     showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} marked as complete!`, 'success', 'Completed');
                     closeConfirmationDialog();
                 }
@@ -1073,7 +956,6 @@
         function saveToLocalStorage() {
             localStorage.setItem('taskmaster_courses', JSON.stringify(courses));
             localStorage.setItem('taskmaster_projects', JSON.stringify(projects));
-            // Streak data and daily plan tasks are saved in their respective functions
         }
 
         function loadFromLocalStorage() {
@@ -1081,91 +963,67 @@
             const storedProjects = localStorage.getItem('taskmaster_projects');
             if (storedCourses) courses = JSON.parse(storedCourses);
             if (storedProjects) projects = JSON.parse(storedProjects);
-
-            const loadedStreakData = JSON.parse(localStorage.getItem('taskmaster_streakData'));
-            if (loadedStreakData) {
-                streakData = loadedStreakData;
-            }
-            // Stored daily plan tasks are loaded directly in generateAndDisplayDailyPlan
         }
 
         // --- AI Insights ---
         function updateAIInsights() {
             const totalTasks = courses.length + projects.length;
-            aiRecommendationTextEl.innerHTML = ''; // Clear previous insights
-
-            if (totalTasks === 0 && dailyPlan.length === 0) {
-                aiRecommendationTextEl.innerHTML = "<p>Welcome! Add some courses or projects to get started and receive personalized insights.</p>";
+            if (totalTasks === 0) {
+                aiRecommendationTextEl.innerHTML = "Add some courses or projects to get personalized insights and scheduling tips!";
                 return;
             }
 
             let insights = [];
-            const todayStr = getTodayDateString();
-
-            // Greeting
-            const hour = new Date().getHours();
-            let greeting = "Hello";
-            if (hour < 12) greeting = "Good morning";
-            else if (hour < 18) greeting = "Good afternoon";
-            else greeting = "Good evening";
-            insights.push(`${greeting}! Ready to tackle your tasks?`);
-
-
-            if (streakData.count > 0 && streakData.lastCompletionDate === todayStr) {
-                 insights.push(`Fantastic! You've completed today's focus and are on a <strong class="text-orange-400">${streakData.count}-day streak!</strong> 🔥 Keep the momentum!`);
-            } else if (streakData.count > 0) {
-                 insights.push(`You're on a <strong class="text-orange-400">${streakData.count}-day streak!</strong> Let's make today count too!`);
-            }
-
-
-            const completedDailyTasks = dailyPlan.filter(task => task.completed).length;
-            if (dailyPlan.length > 0 && completedDailyTasks === dailyPlan.length && streakData.lastCompletionDate !== todayStr) {
-                // This case is handled by streak logic, but good to have a specific message if streak hasn't updated yet
-                insights.push(`All daily focus tasks done! Excellent work! 🎉`);
-            } else if (dailyPlan.length > 0 && completedDailyTasks > 0 && completedDailyTasks < dailyPlan.length) {
-                insights.push(`Great progress on today's focus: <strong class="text-green-400">${completedDailyTasks}/${dailyPlan.length} tasks completed!</strong> Keep it up!`);
-            } else if (dailyPlan.length > 0 && completedDailyTasks === 0) {
-                insights.push(`Today's focus has <strong class="text-yellow-300">${dailyPlan.length} task(s)</strong>. Let's get started!`);
-            }
-
-
-            const highPriorityTasks = [...courses, ...projects].filter(t => t.priority === 'high' && new Date(t.endDate) >= new Date(todayStr) && new Date(t.startDate) <= new Date(todayStr)).length;
-            if (highPriorityTasks > 0) {
-                insights.push(`You have <strong class="text-red-400">${highPriorityTasks} active high-priority item(s)</strong>. Ensure they get attention.`);
-            }
-            
+            const highPriorityTasks = [...courses, ...projects].filter(t => t.priority === 'high').length;
             const upcomingDeadlines = [...courses, ...projects].filter(t => {
                 const endDate = new Date(t.endDate);
-                const diffTime = endDate - new Date(todayStr);
+                const today = new Date();
+                const diffTime = endDate - today;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 return diffDays >= 0 && diffDays <= 7; 
             }).length;
+            
+            if (dailyPlan.length > 0 && dailyPlan.length <= 3) {
+                 insights.push(`Your day is focused on <strong class="text-green-300">${dailyPlan.length} key task(s)</strong>, including long-term goals. Good balance!`);
+            } else if (totalTasks > 0 && dailyPlan.length === 0) {
+                insights.push("Your 'Today's Focus' is clear. Consider if any long-term projects need attention or enjoy a well-deserved break!");
+            }
 
+
+            if (highPriorityTasks > 0) {
+                insights.push(`You have <strong class="text-yellow-300">${highPriorityTasks} high-priority item(s)</strong> overall. Ensure they get attention.`);
+            }
             if (upcomingDeadlines > 0) {
-                insights.push(`<strong class="text-yellow-300">${upcomingDeadlines} item(s) are due within the next 7 days.</strong> Plan accordingly.`);
+                insights.push(`<strong class="text-orange-300">${upcomingDeadlines} item(s) are due within the next 7 days.</strong> Plan accordingly.`);
             }
             
-            const longTermTasksInFocus = dailyPlan.filter(dpTask => {
+            const longTermTasks = [...courses, ...projects].filter(t => {
+                const endDate = new Date(t.endDate);
+                const today = new Date();
+                const diffTime = endDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays > 30; // Due more than a month away
+            }).length;
+
+            if(longTermTasks > 0 && !dailyPlan.some(dpTask => {
                 const taskDetails = [...courses, ...projects].find(t => t.id === dpTask.itemId);
                 if (!taskDetails) return false;
                 const endDate = new Date(taskDetails.endDate);
-                const diffTime = endDate - new Date(todayStr);
+                const today = new Date();
+                const diffTime = endDate - today;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 return diffDays > 30;
-            }).length;
-
-            if(longTermTasksInFocus > 0){
-                insights.push(`Good to see you're chipping away at <strong class="text-blue-300">long-term goals</strong> in today's focus!`);
+            })) {
+                // If there are long term tasks but none are in today's focus
+                 insights.push(`Consider dedicating some time to one of your <strong class="text-blue-300">${longTermTasks} long-term tasks</strong> to make steady progress.`);
             }
 
 
-            if (insights.length <= 1 && totalTasks > 0) { // If only greeting and no other specific insight
-                insights.push("Keep adding and completing tasks to make the most of TaskMaster Pro!");
-            } else if (insights.length <=1 && totalTasks === 0) {
-                 insights.push("Add your first course or project to begin your journey to mastery!");
+            if (insights.length === 0) {
+                insights.push("Keep up the great work! Remember to balance your workload and take breaks.");
             }
             
-            aiRecommendationTextEl.innerHTML = insights.map(insight => `<p class="mb-2 fade-in"><i class="fas fa-check-circle text-green-400 mr-2"></i>${insight}</p>`).join('');
+            aiRecommendationTextEl.innerHTML = insights.map(insight => `<p class="mb-2"><i class="fas fa-check-circle text-green-400 mr-2"></i>${insight}</p>`).join('');
         }
         
         // --- Event Listeners Setup ---
@@ -1212,12 +1070,11 @@
 
         // --- Initialization ---
         function initApp() {
-            loadFromLocalStorage(); // Load courses, projects, and streak data
-            renderAllItems(); // This will generate daily plan (which also loads its own state or creates new) and render everything
+            loadFromLocalStorage();
+            renderAllItems(); 
             switchView('courses'); 
             setupEventListeners();
-            // updateAIInsights(); // Called by renderAllItems indirectly through generateAndDisplayDailyPlan
-            // updateStreakDisplay(); // Also called by generateAndDisplayDailyPlan
+            updateAIInsights(); 
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
