@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project: Real Estate Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1f2937; /* gray-800 */
+        }
+        .skill-tag {
+            background-color: #e0f2fe; /* sky-100 */
+            color: #0c4a6e; /* sky-800 */
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        /* Custom prose styles for article-like content */
+        .prose {
+            color: #374151; /* gray-700 */
+            line-height: 1.75;
+            max-width: 65ch; /* Optimal reading width */
+        }
+        .prose h2 {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 600;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            color: #111827; /* gray-900 */
+        }
+        .prose h3 { /* Added for consistency if h3 is used within prose */
+            font-size: 1.25rem; /* 20px */
+            font-weight: 600;
+            margin-top: 1.75em;
+            margin-bottom: 0.75em;
+            color: #111827; /* gray-900 */
+        }
+        .prose p {
+            margin-top: 1.25em;
+            margin-bottom: 1.25em;
+        }
+        .prose a {
+            color: #4f46e5; /* indigo-600 */
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .prose a:hover {
+            text-decoration: underline;
+        }
+        .prose ul {
+            margin-top: 1.25em;
+            margin-bottom: 1.25em;
+            padding-left: 1.75em;
+            list-style-type: disc;
+        }
+        .prose li {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+        .prose pre {
+            background-color: #f3f4f6; /* gray-100 */
+            border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 0.375rem; /* rounded-md */
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: #111827; /* gray-900 */
+            margin-top: 1.5em;
+            margin-bottom: 1.5em;
+        }
+        .prose code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        .prose pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            font-size: inherit;
+        }
+        .prose code::before, .prose code::after {
+            content: none;
+        }
+        /* Image gallery styles */
+        .gallery-grid img {
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); /* shadow-md */
+            transition: transform 0.3s ease;
+            width: 100%;
+            /* height: auto; */ /* Removed to allow fixed height via Tailwind class */
+            object-fit: cover; /* Ensures image covers the area, cropping if needed */
+        }
+        .gallery-grid img:hover {
+            transform: scale(1.03);
+        }
+        /* Styles for technical images or diagrams if needed separately */
+        .technical-image-container {
+            margin-top: 1.5em;
+            margin-bottom: 1.5em;
+            border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 0.375rem; /* rounded-md */
+            padding: 0.5rem;
+            background-color: #f9fafb; /* gray-50 */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+        }
+        .technical-image-container img {
+            border-radius: 0.25rem; /* rounded-sm */
+            width: 100%;
+            height: auto;
+        }
+        /* Like button specific styles */
+        #likeButtonContainer {
+            cursor: pointer;
+            user-select: none; /* Prevent text selection on rapid clicks */
+        }
+        #likeButtonContainer:hover .uil-heart { /* Target heart icon specifically for hover */
+            color: #ef4444; /* red-500 */
+        }
+        #likeButtonContainer.liked .uil-heart { /* When liked, heart is red */
+            color: #ef4444; /* red-500 */
+        }
+        /* Styles for the Kaggle iframe container */
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            /* Maintain aspect ratio (e.g., 4:3 for 75%, 16:9 for 56.25%) */
+            padding-bottom: 75%; /* Adjust as needed for your notebook's content */
+            height: 0;
+            overflow: hidden;
+            border-radius: 0.5rem; /* rounded-lg */
+        }
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none; /* Remove default iframe border */
+            border-radius: 0.5rem; /* Ensure iframe itself respects container's rounding */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-semibold text-gray-800">Projects</h1>
+                </div>
+                <a href="../index.html" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:shadow-sm transition-all duration-150">
+                    <i class="uil uil-estate mr-2"></i>Home
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="py-10 sm:py-14">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <div class="mb-8 sm:mb-10">
+                <img src="https://media.istockphoto.com/id/1148711252/photo/barcelona-aerial-view-from-the-high.jpg?s=612x612&w=0&k=20&c=TDs9Gnlpw2ZNCoF0pNVJafBr_440-9fcjJSuSRd0QoY="
+                     alt="Real Estate Analysis Hero Image"
+                     class="w-full h-auto rounded-lg shadow-lg object-cover"
+                     onerror="this.onerror=null; this.src='https://placehold.co/1200x600/cccccc/ffffff?text=Image+Not+Available';">
+            </div>
+
+            <section class="mb-8 sm:mb-10">
+                <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-2">Real Estate Market Analysis</h1>
+                <p class="text-lg text-indigo-600 font-medium mb-6">Exploring key factors influencing property prices and market trends.</p>
+
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-4 mb-6">
+                    <button id="likeButtonContainer" type="button" class="inline-flex items-center justify-center px-5 py-2.5 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-150" title="Like this project (visual only, resets on reload)">
+                        <i class="uil uil-heart text-xl"></i> 
+                        <span id="likeCount" class="ml-2 font-medium text-gray-600">0</span>
+                    </button>
+                    <a href="[Link to GitHub Repo for Real Estate]" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-5 py-2.5 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:shadow-sm transition-all duration-150">
+                        <i class="uil uil-github text-xl mr-2"></i>Code Repository
+                    </a>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-sm font-medium text-gray-600 mr-2">Skills:</span>
+                    <span class="skill-tag">Data Analysis</span>
+                    <span class="skill-tag">Predictive Modeling</span>
+                    <span class="skill-tag">Python</span>
+                </div>
+            </section>
+
+            <section class="mb-8 sm:mb-10">
+                <div class="prose prose-indigo lg:prose-lg mx-auto"> <h2>Project Overview</h2>
+                    <p>
+                        This project delves into the fascinating world of real estate, aiming to uncover insights into property valuation and market dynamics.
+                        We analyze various features that influence housing prices, such as location, size, number of rooms, and amenities.
+                        For a deeper dive into the methodology and to explore the interactive elements, please see the embedded Kaggle notebook below.
+                    </p>
+                    
+                    <h3>Key Aspects Explored:</h3>
+                    <ul>
+                        <li><strong>Data Cleaning:</strong> Preparing the raw dataset for analysis by handling missing values, inconsistencies, and outliers.</li>
+                        <li><strong>Summarize Key Statistics:</strong> Deriving essential descriptive statistics to understand the central tendencies, spread, and shape of the data.</li>
+                        <li><strong>Analyze Yearly Market Trends:</strong> Investigating how property sales, values, and other metrics have changed over different years.</li>
+                        <li><strong>Identify High-Performing Towns:</strong> Pinpointing towns or regions that exhibit strong real estate performance based on various criteria.</li>
+                        <li><strong>Compare Property Types:</strong> Analyzing differences and trends across various property types (e.g., residential vs. commercial).</li>
+                        <li><strong>Compare Residential Types:</strong> Diving deeper into residential properties to compare different subtypes (e.g., single-family, multi-family).</li>
+                        <li><strong>Visualize Sales Volume Over Time:</strong> Creating visualizations to show the progression of sales activity through different periods.</li>
+                        <li><strong>Evaluate Assessment Fairness:</strong> Examining the relationship between assessed values and sale amounts to gauge the fairness and accuracy of property assessments.</li>
+                        <li><strong>Build a Predictive Model:</strong> Developing a machine learning model to forecast property sale amounts based on relevant features.</li>
+                    </ul>
+
+                    <div class="mt-10 mb-8"> <h2 class="text-2xl sm:text-3xl font-semibold text-indigo-600 mb-4 text-center sm:text-left"> 
+                            Interactive Kaggle Notebook
+                        </h2>
+                        <div class="iframe-container shadow-xl"> <iframe
+                                src="https://www.kaggle.com/embed/tanajan/real-estate"
+                                title="My Kaggle Notebook: Real Estate Analysis"
+                                allowfullscreen
+                                loading="lazy"
+                            ></iframe>
+                        </div>
+                    </div>
+
+                    <p>
+                        You can find the complete analysis, code, and visualizations within the embedded Kaggle notebook above. Feel free to explore and interact with the data.
+                    </p>
+                </div>
+            </section>
+
+            <section class="mb-8 sm:mb-10">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center sm:text-left">Visualizations & Key Insights</h2>
+                <div class="gallery-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 sm:gap-6">
+                    <img src="../IMAGE/town_sale.png" alt="Real Estate Chart: Town Sale Analysis" class="gallery-img h-64" onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Chart+Error';">
+                    <img src="../IMAGE/property_by_sale_amount.png" alt="Real Estate Chart: Property by Sale Amount" class="gallery-img h-64" onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Chart+Error';">
+                    <img src="../IMAGE/monthlytotal_sales.png" alt="Real Estate Chart: Monthly Total Sales" class="gallery-img h-64" onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Chart+Error';">
+                    <img src="../IMAGE/real_estate_fairness.png" alt="Real Estate Chart: Assessment Fairness" class="gallery-img h-64" onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Chart+Error';">
+                </div>
+            </section>
+            
+            <div id="lightbox" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[100] p-4" onclick="this.classList.add('hidden')">
+                <img id="lightbox-img" src="" alt="Enlarged view" class="max-w-full max-h-full rounded-md shadow-2xl" />
+                 <button type="button" class="absolute top-4 right-4 text-white text-3xl hover:text-gray-300" aria-label="Close lightbox">&times;</button>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="bg-gray-100 border-t border-gray-200 mt-12 sm:mt-16">
+        <div class="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm text-gray-500">&copy; 2025 Tanawich J. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const likeButtonContainer = document.getElementById('likeButtonContainer');
+            const likeCountSpan = document.getElementById('likeCount');
+
+            if (likeButtonContainer && likeCountSpan) {
+                let currentLikes = 0; // Initialize likes, could be fetched from a backend
+                let isLiked = false;    // Initial state: not liked
+
+                // Function to update visual state of the like button
+                function updateLikeButtonVisuals() {
+                    const heartIcon = likeButtonContainer.querySelector('.uil-heart');
+                    if (heartIcon) {
+                        if (isLiked) {
+                            likeButtonContainer.classList.add('liked');
+                            likeButtonContainer.title = "Unlike this project";
+                            // Optional: Change icon style if you have a filled heart version
+                            // heartIcon.classList.remove('uil-heart');
+                            // heartIcon.classList.add('uis-heart'); // Example for a solid heart
+                        } else {
+                            likeButtonContainer.classList.remove('liked');
+                            likeButtonContainer.title = "Like this project";
+                            // Optional: Revert to outline heart
+                            // heartIcon.classList.add('uil-heart');
+                            // heartIcon.classList.remove('uis-heart');
+                        }
+                    }
+                    likeCountSpan.textContent = currentLikes;
+                }
+
+                // Event Listener for the like button
+                likeButtonContainer.addEventListener('click', () => {
+                    if (isLiked) {
+                        currentLikes--;
+                        isLiked = false;
+                    } else {
+                        currentLikes++;
+                        isLiked = true;
+                    }
+                    updateLikeButtonVisuals();
+                    // In a real application, you would send this update to a server.
+                });
+
+                // Set Initial Visual State
+                updateLikeButtonVisuals(); // Call once on load
+            } else {
+                console.warn("Like button elements not found. Ensure IDs 'likeButtonContainer' and 'likeCountSpan' are correct.");
+            }
+            
+            // Lightbox functionality
+            const images = document.querySelectorAll('.gallery-img');
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            const lightboxCloseButton = lightbox.querySelector('button');
+
+
+            if (images.length > 0 && lightbox && lightboxImg) {
+                images.forEach(img => {
+                    img.addEventListener('click', () => {
+                        lightboxImg.src = img.src;
+                        lightboxImg.alt = img.alt; // Set alt text for lightbox image
+                        lightbox.classList.remove('hidden');
+                        document.body.style.overflow = 'hidden'; // Prevent background scroll
+                    });
+                });
+
+                // Close lightbox by clicking the close button or outside the image
+                lightbox.addEventListener('click', (e) => {
+                    if (e.target === lightbox || e.target === lightboxCloseButton) {
+                        lightbox.classList.add('hidden');
+                        document.body.style.overflow = ''; // Restore background scroll
+                    }
+                });
+                 // Close lightbox with Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === "Escape" && !lightbox.classList.contains('hidden')) {
+                        lightbox.classList.add('hidden');
+                        document.body.style.overflow = ''; // Restore background scroll
+                    }
+                });
+
+            } else {
+                 console.warn("Lightbox elements not found or no gallery images present.");
+            }
+        });
+    </script>
+
+</body>
+</html>
