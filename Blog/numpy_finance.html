@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploring the numpy-financial Library: Your Toolkit for Financial Mathematics in Python - Tanawich's Blog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['\\(', '\\)']], // Delimiters for inline math
+            displayMath: [['\\[', '\\]']] // Delimiters for display math
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+      /* Includes styles from blog_article_template_v1 */
+      @font-face {
+        font-family: 'LucideIcons';
+        src: url('https://cdn.jsdelivr.net/npm/lucide-static@latest/font/Lucide.ttf') format('truetype');
+      }
+      .lucide {
+        font-family: 'LucideIcons';
+        font-size: 1.25em;
+        line-height: 1;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff;
+        color: #1f2937;
+      }
+      /* Keep prose styles, MathJax will handle math rendering within it */
+      .prose { color: #374151; line-height: 1.75; max-width: 65ch; }
+      .prose h1 { font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5em; line-height: 1.2; color: #111827; }
+      .prose h2 { font-size: 1.5rem; font-weight: 600; margin-top: 2em; margin-bottom: 1em; color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.3em; }
+      .prose h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.75em; margin-bottom: 0.75em; color: #111827; }
+      .prose p { margin-top: 1.25em; margin-bottom: 1.25em; }
+      .prose a { color: #4f46e5; text-decoration: underline; font-weight: 500; }
+      .prose a:hover { color: #3730a3; }
+      .prose ul, .prose ol { margin-top: 1.25em; margin-bottom: 1.25em; padding-left: 1.75em; }
+      .prose ul { list-style-type: disc; }
+      .prose ol { list-style-type: decimal; }
+      .prose li { margin-top: 0.5em; margin-bottom: 0.5em; }
+      .prose blockquote { margin-top: 1.5em; margin-bottom: 1.5em; padding-left: 1em; border-left: 4px solid #d1d5db; font-style: italic; color: #4b5563; }
+      .prose blockquote p { margin: 0; }
+      .prose pre { background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 1rem; overflow-x: auto; font-size: 0.875rem; line-height: 1.5; color: #111827; margin-top: 1.5em; margin-bottom: 1.5em; }
+      /* Keep code styling for actual code blocks */
+      .prose code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background-color: #f3f4f6; padding: 0.1em 0.3em; border-radius: 0.25rem; font-size: 0.9em; }
+      .prose pre code { background-color: transparent; padding: 0; border-radius: 0; font-size: inherit; }
+      .prose code::before, .prose code::after { content: none; }
+      /* Style images */
+      .prose img { margin-top: 2em; margin-bottom: 2em; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); }
+      .prose figure { margin-top: 2em; margin-bottom: 2em; }
+      .prose figcaption { margin-top: 0.5em; text-align: center; font-size: 0.875rem; color: #6b7280; font-style: italic; }
+
+      #readingProgressBar { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background-color: #4f46e5; z-index: 9999; transition: width 0.1s linear; }
+      .author-box { background-color: #f9fafb; border: 1px solid #e5e7eb; }
+      .related-post-card { border: 1px solid #e5e7eb; transition: box-shadow 0.3s ease; }
+      .related-post-card:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); }
+      /* Table styling */
+      .prose table { width: 100%; border-collapse: collapse; margin-top: 1.5em; margin-bottom: 1.5em; font-size: 0.9em; }
+      .prose th, .prose td { border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; text-align: left; }
+      .prose th { background-color: #f3f4f6; font-weight: 600; }
+      .prose tbody tr:nth-child(odd) { background-color: #f9fafb; }
+    </style>
+    </head>
+<body class="antialiased">
+
+    <div id="readingProgressBar"></div>
+
+    <header class="border-b border-gray-200">
+        <nav class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <a href="../index.html" class="text-lg font-semibold text-gray-800">Tanawich J.</a>
+            </nav>
+    </header>
+
+    <main class="py-10 sm:py-16">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <header class="mb-8">
+                <h1 class="text-3xl sm:text-4xl lg:text-3xl font-bold tracking-tight text-gray-900 mb-4 leading-tight">
+                    Exploring the <code>numpy-financial</code> Library: Your Toolkit for Financial Mathematics in Python
+                </h1>
+                <div class="flex items-center text-sm text-gray-500 mb-6">
+                    <img src="https://placehold.co/40x40/E0E7FF/4F46E5?text=TJ" alt="Tanawich Junpoom" class="w-10 h-10 rounded-full mr-3">
+                    <div>
+                        By <a href="#" class="font-medium text-gray-700 hover:text-indigo-600">Tanawich Junpoom</a>
+                        <span class="mx-1.5">&middot;</span>
+                        <span>May 15, 2025</span> <span class="mx-1.5">&middot;</span>
+                        <span>~15 min read</span> </div>
+                </div>
+                <img src="https://images.unsplash.com/photo-1553729459-efe14ef6055d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8ZmluYW5jZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=1200&q=60"
+                     alt="Calculator and financial documents"
+                     class="w-full h-auto rounded-lg shadow-lg object-cover mb-8"
+                     onerror="this.onerror=null; this.src='https://placehold.co/1200x600/cccccc/ffffff?text=Image+Error';">
+            </header>
+
+            <article class="prose lg:prose-lg mx-auto">
+
+                <p>
+                    For anyone working with financial calculations in Python, the <code>numpy-financial</code> library is an indispensable tool. Originally part of the core NumPy library, these functions were separated into their own package to provide a dedicated and focused toolkit for common financial mathematics. This move allows for independent development and easier maintenance, while still leveraging the power and efficiency of NumPy arrays for vectorized calculations.
+                </p>
+                <p>
+                    In this post, we'll take a tour of the most important functions available in <code>numpy-financial</code>. We'll cover what each function does, the inputs it requires, and the outputs you can expect, complete with examples to help you get started. Whether you're calculating loan payments, evaluating investments, or determining rates of return, <code>numpy-financial</code> has you covered.
+                </p>
+                <p>To use these functions, you'll first need to install the library:</p>
+                <pre><code>pip install numpy-financial</code></pre>
+                <p>And then import it into your Python scripts, commonly as <code>npf</code>:</p>
+                <pre><code>import numpy_financial as npf</code></pre>
+
+                <h2>Core Financial Functions in <code>numpy-financial</code></h2>
+                <p>The library provides a suite of functions for various financial computations, primarily centered around the time value of money, loan calculations, and investment analysis.</p>
+
+                <h3>1. Future Value: <code>npf.fv(rate, nper, pmt, pv, when='end')</code></h3>
+                <p>Calculates the future value (FV) of an investment based on a constant interest rate, periodic payments, and a present value.</p>
+                <table class="w-full text-left border-collapse my-8">
+                    <thead>
+                        <tr><th colspan="3" class="border p-2 font-semibold text-center">Function: <code>npf.fv</code></th></tr>
+                        <tr>
+                            <th class="border p-2 font-semibold">Parameter</th>
+                            <th class="border p-2 font-semibold">Description</th>
+                            <th class="border p-2 font-semibold">Type/Example Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Inputs</strong></td></tr>
+                        <tr><td class="border p-2"><code>rate</code></td><td class="border p-2">Rate of interest per period.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 0.05/12 (for 5% annual rate, monthly period)</td></tr>
+                        <tr><td class="border p-2"><code>nper</code></td><td class="border p-2">Number of compounding periods.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 10*12 (for 10 years, monthly)</td></tr>
+                        <tr><td class="border p-2"><code>pmt</code></td><td class="border p-2">Payment made each period (negative if outflow).</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., -100</td></tr>
+                        <tr><td class="border p-2"><code>pv</code></td><td class="border p-2">Present value (negative if outflow, positive if inflow).</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., -1000</td></tr>
+                        <tr><td class="border p-2"><code>when</code> (optional)</td><td class="border p-2">When payments are due: 'begin' (1) or 'end' (0). Default is 'end'.</td><td class="border p-2"><code>str</code> or <code>int</code>, e.g., 'begin'</td></tr>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Returns</strong></td></tr>
+                        <tr><td class="border p-2"><code>fv</code></td><td class="border p-2">The future value of the investment/loan.</td><td class="border p-2"><code>float</code> or <code>ndarray</code></td></tr>
+                    </tbody>
+                </table>
+                <p><em>Example:</em> Calculate the future value of a $1000 investment after 10 years with an annual interest rate of 5% compounded monthly, and monthly contributions of $100.</p>
+                <pre><code># npf.fv(rate=0.05/12, nper=10*12, pmt=-100, pv=-1000)</code></pre>
+
+                <h3>2. Present Value: <code>npf.pv(rate, nper, pmt, fv=0, when='end')</code></h3>
+                <p>Calculates the present value (PV) of an investment or loan based on a series of future payments (or a single future value) and a constant interest rate.</p>
+                 <table class="w-full text-left border-collapse my-8">
+                    <thead>
+                        <tr><th colspan="3" class="border p-2 font-semibold text-center">Function: <code>npf.pv</code></th></tr>
+                        <tr>
+                            <th class="border p-2 font-semibold">Parameter</th>
+                            <th class="border p-2 font-semibold">Description</th>
+                            <th class="border p-2 font-semibold">Type/Example Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Inputs</strong></td></tr>
+                        <tr><td class="border p-2"><code>rate</code></td><td class="border p-2">Rate of interest per period.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 0.03/4 (for 3% annual rate, quarterly)</td></tr>
+                        <tr><td class="border p-2"><code>nper</code></td><td class="border p-2">Number of compounding periods.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 5*4</td></tr>
+                        <tr><td class="border p-2"><code>pmt</code></td><td class="border p-2">Payment made each period.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 200</td></tr>
+                        <tr><td class="border p-2"><code>fv</code> (optional)</td><td class="border p-2">Future value. Default is 0.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 10000</td></tr>
+                        <tr><td class="border p-2"><code>when</code> (optional)</td><td class="border p-2">When payments are due: 'begin' (1) or 'end' (0). Default is 'end'.</td><td class="border p-2"><code>str</code> or <code>int</code>, e.g., 'end'</td></tr>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Returns</strong></td></tr>
+                        <tr><td class="border p-2"><code>pv</code></td><td class="border p-2">The present value.</td><td class="border p-2"><code>float</code> or <code>ndarray</code></td></tr>
+                    </tbody>
+                </table>
+                <p><em>Example:</em> What is the present value of an investment that will pay $200 quarterly for 5 years and have a future value of $10,000, if the discount rate is 3% compounded quarterly?</p>
+                <pre><code># npf.pv(rate=0.03/4, nper=5*4, pmt=200, fv=10000)</code></pre>
+
+                <h3>3. Payment: <code>npf.pmt(rate, nper, pv, fv=0, when='end')</code></h3>
+                <p>Calculates the fixed periodic payment (PMT) required to pay off a loan or achieve a future value, given a constant interest rate, number of periods, and present value.</p>
+                <table class="w-full text-left border-collapse my-8">
+                    <thead>
+                        <tr><th colspan="3" class="border p-2 font-semibold text-center">Function: <code>npf.pmt</code></th></tr>
+                        <tr>
+                            <th class="border p-2 font-semibold">Parameter</th>
+                            <th class="border p-2 font-semibold">Description</th>
+                            <th class="border p-2 font-semibold">Type/Example Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Inputs</strong></td></tr>
+                        <tr><td class="border p-2"><code>rate</code></td><td class="border p-2">Rate of interest per period.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 0.06/12</td></tr>
+                        <tr><td class="border p-2"><code>nper</code></td><td class="border p-2">Number of payment periods.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 30*12</td></tr>
+                        <tr><td class="border p-2"><code>pv</code></td><td class="border p-2">Present value (loan amount).</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 200000</td></tr>
+                        <tr><td class="border p-2"><code>fv</code> (optional)</td><td class="border p-2">Future value (e.g., balloon payment). Default is 0.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 0</td></tr>
+                        <tr><td class="border p-2"><code>when</code> (optional)</td><td class="border p-2">When payments are due. Default is 'end'.</td><td class="border p-2"><code>str</code> or <code>int</code></td></tr>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Returns</strong></td></tr>
+                        <tr><td class="border p-2"><code>pmt</code></td><td class="border p-2">The periodic payment. Usually negative as it's an outflow.</td><td class="border p-2"><code>float</code> or <code>ndarray</code></td></tr>
+                    </tbody>
+                </table>
+                <p><em>Example:</em> Calculate the monthly payment for a $200,000 loan over 30 years at an annual interest rate of 6%.</p>
+                <pre><code># npf.pmt(rate=0.06/12, nper=30*12, pv=200000)</code></pre>
+
+                <h3>4. Number of Periods: <code>npf.nper(rate, pmt, pv, fv=0, when='end')</code></h3>
+                <p>Calculates the number of periodic payments (NPER) required to pay off a loan or reach an investment goal.</p>
+                <table class="w-full text-left border-collapse my-8">
+                    <thead>
+                        <tr><th colspan="3" class="border p-2 font-semibold text-center">Function: <code>npf.nper</code></th></tr>
+                        <tr>
+                            <th class="border p-2 font-semibold">Parameter</th>
+                            <th class="border p-2 font-semibold">Description</th>
+                            <th class="border p-2 font-semibold">Type/Example Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Inputs</strong></td></tr>
+                        <tr><td class="border p-2"><code>rate</code></td><td class="border p-2">Rate of interest per period.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 0.07/12</td></tr>
+                        <tr><td class="border p-2"><code>pmt</code></td><td class="border p-2">Payment made each period (must be negative for loan payoff).</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., -500</td></tr>
+                        <tr><td class="border p-2"><code>pv</code></td><td class="border p-2">Present value.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 50000</td></tr>
+                        <tr><td class="border p-2"><code>fv</code> (optional)</td><td class="border p-2">Future value. Default is 0.</td><td class="border p-2"><code>float</code> or <code>array_like</code></td></tr>
+                        <tr><td class="border p-2"><code>when</code> (optional)</td><td class="border p-2">When payments are due. Default is 'end'.</td><td class="border p-2"><code>str</code> or <code>int</code></td></tr>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Returns</strong></td></tr>
+                        <tr><td class="border p-2"><code>nper</code></td><td class="border p-2">The number of periods.</td><td class="border p-2"><code>float</code> or <code>ndarray</code></td></tr>
+                    </tbody>
+                </table>
+                <p><em>Example:</em> How many monthly payments of $500 are needed to pay off a $50,000 loan at 7% annual interest?</p>
+                <pre><code># npf.nper(rate=0.07/12, pmt=-500, pv=50000)</code></pre>
+
+                <h3>5. Interest Rate per Period: <code>npf.rate(nper, pmt, pv, fv, when='end', guess=0.1, tol=1e-06, maxiter=100)</code></h3>
+                <p>Calculates the interest rate per period of a loan or investment. This function uses an iterative process to find the rate.</p>
+                <table class="w-full text-left border-collapse my-8">
+                    <thead>
+                        <tr><th colspan="3" class="border p-2 font-semibold text-center">Function: <code>npf.rate</code></th></tr>
+                        <tr>
+                            <th class="border p-2 font-semibold">Parameter</th>
+                            <th class="border p-2 font-semibold">Description</th>
+                            <th class="border p-2 font-semibold">Type/Example Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Inputs</strong></td></tr>
+                        <tr><td class="border p-2"><code>nper</code></td><td class="border p-2">Number of periods.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 5*12</td></tr>
+                        <tr><td class="border p-2"><code>pmt</code></td><td class="border p-2">Payment per period.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., -200</td></tr>
+                        <tr><td class="border p-2"><code>pv</code></td><td class="border p-2">Present value.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 10000</td></tr>
+                        <tr><td class="border p-2"><code>fv</code></td><td class="border p-2">Future value.</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 0</td></tr>
+                        <tr><td class="border p-2"><code>when</code> (optional)</td><td class="border p-2">When payments are due. Default is 'end'.</td><td class="border p-2"><code>str</code> or <code>int</code></td></tr>
+                        <tr><td class="border p-2"><code>guess</code> (optional)</td><td class="border p-2">Initial guess for the rate. Default is 0.1.</td><td class="border p-2"><code>float</code></td></tr>
+                        <tr><td class="border p-2"><code>tol</code> (optional)</td><td class="border p-2">Required tolerance for the solution. Default is 1e-06.</td><td class="border p-2"><code>float</code></td></tr>
+                        <tr><td class="border p-2"><code>maxiter</code> (optional)</td><td class="border p-2">Maximum iterations. Default is 100.</td><td class="border p-2"><code>int</code></td></tr>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Returns</strong></td></tr>
+                        <tr><td class="border p-2"><code>rate</code></td><td class="border p-2">The interest rate per period.</td><td class="border p-2"><code>float</code> or <code>ndarray</code></td></tr>
+                    </tbody>
+                </table>
+                <p><em>Example:</em> What is the monthly interest rate if a $10,000 loan is paid off with 60 monthly payments of $200?</p>
+                <pre><code># monthly_rate = npf.rate(nper=60, pmt=-200, pv=10000, fv=0)
+# annual_rate = monthly_rate * 12</code></pre>
+
+                <h3>6. Principal Payment: <code>npf.ppmt(rate, per, nper, pv, fv=0, when='end')</code></h3>
+                <p>Calculates the portion of a loan payment that goes towards the principal for a given period.</p>
+                 <table class="w-full text-left border-collapse my-8">
+                    <thead>
+                        <tr><th colspan="3" class="border p-2 font-semibold text-center">Function: <code>npf.ppmt</code></th></tr>
+                        <tr>
+                            <th class="border p-2 font-semibold">Parameter</th>
+                            <th class="border p-2 font-semibold">Description</th>
+                            <th class="border p-2 font-semibold">Type/Example Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Inputs</strong></td></tr>
+                        <tr><td class="border p-2"><code>rate</code></td><td class="border p-2">Rate of interest per period.</td><td class="border p-2"><code>float</code> or <code>array_like</code></td></tr>
+                        <tr><td class="border p-2"><code>per</code></td><td class="border p-2">The period for which to calculate the principal payment (1-indexed).</td><td class="border p-2"><code>float</code> or <code>array_like</code>, e.g., 1 (for first period)</td></tr>
+                        <tr><td class="border p-2"><code>nper</code></td><td class="border p-2">Total number of payment periods.</td><td class="border p-2"><code>float</code> or <code>array_like</code></td></tr>
+                        <tr><td class="border p-2"><code>pv</code></td><td class="border p-2">Present value (loan amount).</td><td class="border p-2"><code>float</code> or <code>array_like</code></td></tr>
+                        <tr><td class="border p-2"><code>fv</code> (optional)</td><td class="border p-2">Future value. Default is 0.</td><td class="border p-2"><code>float</code> or <code>array_like</code></td></tr>
+                        <tr><td class="border p-2"><code>when</code> (optional)</td><td class="border p-2">When payments are due. Default is 'end'.</td><td class="border p-2"><code>str</code> or <code>int</code></td></tr>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Returns</strong></td></tr>
+                        <tr><td class="border p-2"><code>ppmt</code></td><td class="border p-2">The principal payment for the specified period.</td><td class="border p-2"><code>float</code> or <code>ndarray</code></td></tr>
+                    </tbody>
+                </table>
+                <p><em>Example:</em> For a loan of $20,000 at 5% annual interest over 5 years (monthly payments), what is the principal portion of the 1st payment?</p>
+                <pre><code># npf.ppmt(rate=0.05/12, per=1, nper=5*12, pv=20000)</code></pre>
+
+                <h3>7. Interest Payment: <code>npf.ipmt(rate, per, nper, pv, fv=0, when='end')</code></h3>
+                <p>Calculates the interest portion of a loan payment for a given period.</p>
+                <table class="w-full text-left border-collapse my-8">
+                    <thead>
+                        <tr><th colspan="3" class="border p-2 font-semibold text-center">Function: <code>npf.ipmt</code></th></tr>
+                        <tr>
+                            <th class="border p-2 font-semibold">Parameter</th>
+                            <th class="border p-2 font-semibold">Description</th>
+                            <th class="border p-2 font-semibold">Type/Example Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Inputs</strong></td></tr>
+                        <tr><td class="border p-2"><code>rate</code></td><td class="border p-2">Rate of interest per period.</td><td class="border p-2"><code>float</code> or <code>array_like</code></td></tr>
+                        <tr><td class="border p-2"><code>per</code></td><td class="border p-2">The period for which to calculate interest (1-indexed).</td><td class="border p-2"><code>float</code> or <code>array_like</code></td></tr>
+                        <tr><td class="border p-2"><code>nper</code></td><td class="border p-2">Total number of payment periods.</td><td class="border p-2"><code>float</code> or <code>array_like</code></td></tr>
+                        <tr><td class="border p-2"><code>pv</code></td><td class="border p-2">Present value (loan amount).</td><td class="border p-2"><code>float</code> or <code>array_like</code></td></tr>
+                        <tr><td class="border p-2"><code>fv</code> (optional)</td><td class="border p-2">Future value. Default is 0.</td><td class="border p-2"><code>float</code> or <code>array_like</code></td></tr>
+                        <tr><td class="border p-2"><code>when</code> (optional)</td><td class="border p-2">When payments are due. Default is 'end'.</td><td class="border p-2"><code>str</code> or <code>int</code></td></tr>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Returns</strong></td></tr>
+                        <tr><td class="border p-2"><code>ipmt</code></td><td class="border p-2">The interest payment for the specified period.</td><td class="border p-2"><code>float</code> or <code>ndarray</code></td></tr>
+                    </tbody>
+                </table>
+                 <p><em>Example:</em> For the same loan ($20,000, 5% annual, 5 years monthly), what is the interest portion of the 1st payment?</p>
+                <pre><code># npf.ipmt(rate=0.05/12, per=1, nper=5*12, pv=20000)</code></pre>
+                <p>Note: <code>npf.pmt(...)</code> should equal <code>npf.ppmt(...) + npf.ipmt(...)</code> for any given period.</p>
+
+                <h3>8. Net Present Value: <code>npf.npv(rate, values)</code></h3>
+                <p>Calculates the Net Present Value (NPV) of a series of cash flows. The cash flows are assumed to occur at regular intervals, with the first cash flow (<code>values[0]</code>) occurring at time 0.</p>
+                <table class="w-full text-left border-collapse my-8">
+                    <thead>
+                        <tr><th colspan="3" class="border p-2 font-semibold text-center">Function: <code>npf.npv</code></th></tr>
+                        <tr>
+                            <th class="border p-2 font-semibold">Parameter</th>
+                            <th class="border p-2 font-semibold">Description</th>
+                            <th class="border p-2 font-semibold">Type/Example Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Inputs</strong></td></tr>
+                        <tr><td class="border p-2"><code>rate</code></td><td class="border p-2">The discount rate per period.</td><td class="border p-2"><code>float</code></td></tr>
+                        <tr><td class="border p-2"><code>values</code></td><td class="border p-2">An array_like sequence of cash flows. The first value is at t=0, the second at t=1, etc. Outflows are negative, inflows positive.</td><td class="border p-2"><code>array_like</code>, e.g., [-1000, 300, 300, 500]</td></tr>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Returns</strong></td></tr>
+                        <tr><td class="border p-2"><code>npv</code></td><td class="border p-2">The net present value of the cash flows.</td><td class="border p-2"><code>float</code></td></tr>
+                    </tbody>
+                </table>
+                <p><em>Example:</em> Calculate the NPV of an investment with an initial outlay of $1000, followed by inflows of $300, $300, and $500 over the next three years, using a discount rate of 10%.</p>
+                <pre><code># npf.npv(rate=0.10, values=[-1000, 300, 300, 500])</code></pre>
+
+                <h3>9. Internal Rate of Return: <code>npf.irr(values)</code></h3>
+                <p>Calculates the Internal Rate of Return (IRR) for a series of cash flows. IRR is the discount rate at which the NPV of the cash flows equals zero.</p>
+                 <table class="w-full text-left border-collapse my-8">
+                    <thead>
+                        <tr><th colspan="3" class="border p-2 font-semibold text-center">Function: <code>npf.irr</code></th></tr>
+                        <tr>
+                            <th class="border p-2 font-semibold">Parameter</th>
+                            <th class="border p-2 font-semibold">Description</th>
+                            <th class="border p-2 font-semibold">Type/Example Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Inputs</strong></td></tr>
+                        <tr><td class="border p-2"><code>values</code></td><td class="border p-2">An array_like sequence of cash flows. Must contain at least one positive and one negative value.</td><td class="border p-2"><code>array_like</code>, e.g., [-100, 30, 40, 50]</td></tr>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Returns</strong></td></tr>
+                        <tr><td class="border p-2"><code>irr</code></td><td class="border p-2">The internal rate of return. Returns <code>NaN</code> if no solution is found or multiple solutions exist.</td><td class="border p-2"><code>float</code></td></tr>
+                    </tbody>
+                </table>
+                <p><em>Example:</em> Find the IRR for an investment with an initial cost of $100 and returns of $30, $40, and $50 over the next three periods.</p>
+                <pre><code># npf.irr([-100, 30, 40, 50])</code></pre>
+
+                <h3>10. Modified Internal Rate of Return: <code>npf.mirr(values, finance_rate, reinvest_rate)</code></h3>
+                <p>Calculates the Modified Internal Rate of Return (MIRR). MIRR addresses some shortcomings of IRR by assuming that positive cash flows are reinvested at a specific reinvestment rate, and negative cash flows are financed at a specific financing rate.</p>
+                 <table class="w-full text-left border-collapse my-8">
+                    <thead>
+                        <tr><th colspan="3" class="border p-2 font-semibold text-center">Function: <code>npf.mirr</code></th></tr>
+                        <tr>
+                            <th class="border p-2 font-semibold">Parameter</th>
+                            <th class="border p-2 font-semibold">Description</th>
+                            <th class="border p-2 font-semibold">Type/Example Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Inputs</strong></td></tr>
+                        <tr><td class="border p-2"><code>values</code></td><td class="border p-2">An array_like sequence of cash flows.</td><td class="border p-2"><code>array_like</code>, e.g., [-120, 40, 50, 60]</td></tr>
+                        <tr><td class="border p-2"><code>finance_rate</code></td><td class="border p-2">Interest rate paid on the money used for financing (for negative cash flows).</td><td class="border p-2"><code>float</code>, e.g., 0.08</td></tr>
+                        <tr><td class="border p-2"><code>reinvest_rate</code></td><td class="border p-2">Interest rate earned on reinvested cash flows (for positive cash flows).</td><td class="border p-2"><code>float</code>, e.g., 0.12</td></tr>
+                        <tr><td colspan="3" class="border p-2 font-medium bg-gray-100"><strong>Returns</strong></td></tr>
+                        <tr><td class="border p-2"><code>mirr</code></td><td class="border p-2">The modified internal rate of return.</td><td class="border p-2"><code>float</code></td></tr>
+                    </tbody>
+                </table>
+                <p><em>Example:</em> Calculate MIRR for cash flows [-120, 40, 50, 60] with a finance rate of 8% and a reinvestment rate of 12%.</p>
+                <pre><code># npf.mirr([-120, 40, 50, 60], finance_rate=0.08, reinvest_rate=0.12)</code></pre>
+
+                <h2>Why Use <code>numpy-financial</code>?</h2>
+                <p>
+                    While you could implement these financial formulas from scratch, using <code>numpy-financial</code> offers several advantages:
+                </p>
+                <ul>
+                    <li><strong>Accuracy and Reliability:</strong> These functions are well-tested and widely used, reducing the risk of errors in your own implementations.</li>
+                    <li><strong>Efficiency:</strong> They are built on NumPy, meaning they can perform vectorized operations on arrays of inputs, which is significantly faster than Python loops for batch calculations.</li>
+                    <li><strong>Standardization:</strong> Using a standard library makes your code more readable and understandable to others familiar with the Python financial ecosystem.</li>
+                    <li><strong>Convenience:</strong> It saves you the time and effort of writing and debugging these common formulas.</li>
+                </ul>
+
+                <h2>Conclusion</h2>
+                <p>
+                    The <code>numpy-financial</code> library provides a robust and convenient set of tools for a wide range of common financial calculations in Python. By understanding these core functions, their inputs, and outputs, you can efficiently perform tasks related to loans, investments, and cash flow analysis. Whether you're a student of finance, a data analyst, or a quantitative developer, <code>numpy-financial</code> is a valuable addition to your Python toolkit.
+                </p>
+                <p>
+                    Remember to consult the <a href="https://numpy.org/numpy-financial/latest/" target="_blank" rel="noopener noreferrer">official numpy-financial documentation</a> for the most detailed and up-to-date information on each function and its parameters.
+                </p>
+
+            </article>
+            <div class="mt-10 pt-6 border-t border-gray-200">
+                <a href="#" download="numpy_financial_guide.pdf" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                    <i class="uil uil-file-download"></i>&nbsp; Download Notes (Placeholder)
+                </a>
+           </div>
+
+            <footer class="mt-10 pt-6 border-t border-gray-200">
+                <div class="mb-6">
+                    <span class="font-medium text-gray-700 mr-2">Tags:</span>
+                    <a href="#" class="text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full px-3 py-1 mr-1 mb-1 inline-block">Python</a>
+                    <a href="#" class="text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full px-3 py-1 mr-1 mb-1 inline-block">NumPy</a>
+                    <a href="#" class="text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full px-3 py-1 mr-1 mb-1 inline-block">numpy-financial</a>
+                    <a href="#" class="text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full px-3 py-1 mr-1 mb-1 inline-block">Finance</a>
+                    <a href="#" class="text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full px-3 py-1 mr-1 mb-1 inline-block">Financial Mathematics</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="font-medium text-gray-700">Share this post:</span>
+                    <a href="https://twitter.com/intent/tweet?url=YOUR_URL&text=YOUR_TEXT" target="_blank" rel="noopener noreferrer" title="Share on Twitter" class="text-gray-500 hover:text-blue-500">
+                        <i class="uil uil-twitter"></i> </a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=" target="_blank" rel="noopener noreferrer" title="Share on Facebook" class="text-gray-500 hover:text-blue-700">
+                        <i class="uil uil-facebook"></i> </a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=" target="_blank" rel="noopener noreferrer" title="Share on LinkedIn" class="text-gray-500 hover:text-blue-600">
+                        <i class="uil uil-linkedin"></i>&nbsp; </a>
+                </div>
+            </footer>
+
+        </div>
+
+        <section class="mt-16 bg-gray-50 py-10">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                 <div class="author-box p-6 rounded-lg flex items-start sm:items-center flex-col sm:flex-row">
+                     <img src="https://placehold.co/80x80/E0E7FF/4F46E5?text=TJ" alt="Tanawich Junpoom" class="w-20 h-20 rounded-full mr-0 mb-4 sm:mr-6 sm:mb-0 flex-shrink-0">
+                     <div>
+                         <h3 class="text-lg font-semibold text-gray-900 mb-1">About The Author</h3>
+                         <p class="text-gray-600 mb-2"><a href="#" class="font-medium text-indigo-600 hover:underline">Tanawich Junpoom</a></p>
+                         <p class="text-sm text-gray-500">
+                             Passionate about quantitative finance and applying mathematical models to understand market dynamics. Exploring the intersection of theory and practical implementation using Python tools.
+                         </p>
+                     </div>
+                 </div>
+            </div>
+        </section>
+
+        <section class="mt-16">
+             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                 <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">You Might Also Like</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                     <a href="#" class="related-post-card block bg-white rounded-lg overflow-hidden p-5">
+                         <h3 class="font-semibold text-gray-800 mb-2">Pandas for Financial Time Series Analysis</h3>
+                         <p class="text-sm text-gray-500">Learn how to manipulate and analyze financial data with Pandas. (Coming Soon)</p>
+                     </a>
+                      <a href="#" class="related-post-card block bg-white rounded-lg overflow-hidden p-5">
+                         <h3 class="font-semibold text-gray-800 mb-2">Visualizing Financial Data with Matplotlib & Seaborn</h3>
+                         <p class="text-sm text-gray-500">Creating insightful charts for financial analysis. (Coming Soon)</p>
+                     </a>
+                     <a href="#" class="related-post-card block bg-white rounded-lg overflow-hidden p-5">
+                         <h3 class="font-semibold text-gray-800 mb-2">Basic Investment Portfolio Metrics in Python</h3>
+                         <p class="text-sm text-gray-500">Calculating returns, volatility, and Sharpe ratio. (Coming Soon)</p>
+                     </a>
+                 </div>
+             </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-100 border-t border-gray-200 mt-16">
+        <div class="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
+            &copy; 2025 Tanawich J. All Rights Reserved.
+        </div>
+    </footer>
+
+    <script>
+        // Reading Progress Bar JS (from template)
+        const progressBar = document.getElementById('readingProgressBar');
+        const body = document.body;
+        const html = document.documentElement;
+        function updateProgressBar() {
+            const totalHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight ) - html.clientHeight;
+            const scrollPercentage = totalHeight > 0 ? (window.pageYOffset / totalHeight) * 100 : 0; // Avoid division by zero
+            if (progressBar) { progressBar.style.width = `${scrollPercentage}%`; }
+        }
+        window.addEventListener('scroll', updateProgressBar);
+        updateProgressBar(); // Initial call
+    </script>
+
+</body>
+</html>
